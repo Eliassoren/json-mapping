@@ -16,6 +16,7 @@ import org.json.JSONObject;
 class Core {
 
   static class Read {
+
     static <T> Try<T> valueFromJson(JSONObject jsonObject, Class<T> valueType) {
       return valueFromJson(jsonObject, valueType, 0);
     }
