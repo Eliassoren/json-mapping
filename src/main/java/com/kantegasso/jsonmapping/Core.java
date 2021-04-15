@@ -22,6 +22,9 @@ class Core {
 
     private static <T> Try<T> valueFromJson(
         JSONObject jsonObject, Class<T> valueType, int recursionDepth) {
+      Try<T> a = parseObjectWithConstructor(jsonObject, valueType, recursionDepth);
+      Try<T> b = parseMutableObjectWithSetters(jsonObject, valueType, recursionDepth);
+      Try<T> c = parseObjectWithFields(jsonObject, valueType, recursionDepth);
       return parseObjectWithConstructor(jsonObject, valueType, recursionDepth)
           .orElse(parseMutableObjectWithSetters(jsonObject, valueType, recursionDepth))
           .orElse(parseObjectWithFields(jsonObject, valueType, recursionDepth));
@@ -134,7 +137,7 @@ class Core {
                         .find(
                             jsonKey -> {
                               Class<?> jsonFieldType = jsonMap.get(jsonKey).getClass();
-                              return Utils.isTypeApplicableToOtherType(parameterType, jsonFieldType)
+                              return Utils.isTypeApplicableToParse(parameterType, jsonFieldType)
                                   && jsonKey.equals(parameterName);
                             })
                         .map(jsonMap::get)

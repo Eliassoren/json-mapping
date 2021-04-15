@@ -85,9 +85,11 @@ public class Utils {
   }
 
   static boolean isBasicJavaObject(Object value) {
-    return value.getClass().isPrimitive()
-        || value.getClass().getPackage().getName().startsWith("java")
-        || value.getClass().isEnum();
+    return isBasicJavaObject(value.getClass());
+  }
+
+  static boolean isBasicJavaObject(Class<?> type) {
+    return type.isPrimitive() || type.getPackage().getName().startsWith("java") || type.isEnum();
   }
 
   static Object convertJavaLangNumber(Object value, Class<?> valueType, Class<?> typeToConvert)
@@ -101,7 +103,7 @@ public class Utils {
     return valueConversionMethod.invoke(value);
   }
 
-  static boolean isTypeApplicableToOtherType(Class<?> typeTo, Class<?> typeFrom) {
+  static boolean isTypeApplicableToParse(Class<?> typeTo, Class<?> typeFrom) {
     return isTypeEquals(typeFrom, typeTo)
         || (isJavaLangNumber(typeFrom) && isJavaLangNumber(typeTo))
         || (typeFrom.equals(String.class) && typeTo.isEnum())
