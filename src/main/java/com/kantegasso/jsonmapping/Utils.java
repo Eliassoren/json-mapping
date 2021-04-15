@@ -11,7 +11,7 @@ import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.Map;
 
-public class Utils {
+class Utils {
 
   static final int MAX_RECURSION_DEPTH = 10;
 
