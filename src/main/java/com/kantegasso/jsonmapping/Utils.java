@@ -13,7 +13,7 @@ import java.util.Map;
 
 public class Utils {
 
-  static final int MAX_RECURSION_DEPTH = 4;
+  static final int MAX_RECURSION_DEPTH = 10;
 
   static final Map<Class<?>, Class<?>> primitiveTypeConversion = new HashMap<>();
 
@@ -104,8 +104,8 @@ public class Utils {
   static boolean isTypeApplicableToOtherType(Class<?> typeTo, Class<?> typeFrom) {
     return isTypeEquals(typeFrom, typeTo)
         || (isJavaLangNumber(typeFrom) && isJavaLangNumber(typeTo))
-        || (typeTo.isEnum() && typeFrom.equals(String.class))
-        || typeFrom.equals(HashMap.class);
+        || (typeFrom.equals(String.class) && typeTo.isEnum())
+        || (typeFrom.equals(HashMap.class) && !isBasicJavaObject(typeTo));
   }
 
   static String getFieldName(Field field) {
@@ -121,5 +121,29 @@ public class Utils {
     Field modifiersField = Field.class.getDeclaredField("modifiers");
     modifiersField.setAccessible(true);
     modifiersField.setInt(field, field.getModifiers() & ~Modifier.FINAL);
+  }
+
+  static Map<String, String> convertToStringValues(Map<String, ?> map) {
+    Map<String, String> newMap = new HashMap<>();
+    map.forEach(
+        (key, value) -> {
+          newMap.put(key, String.valueOf(value));
+        });
+    return newMap;
+  }
+
+  static <T> Try<T> invokePrivateConstuctor(Class<T> valueType) {
+    return Try.of(
+            () ->
+                List.of(valueType.getDeclaredConstructors())
+                    .filter(constructor -> constructor.getParameterCount() == 0)
+                    .map(
+                        constructor -> {
+                          constructor.setAccessible(true);
+                          return constructor;
+                        })
+                    .get()
+                    .newInstance())
+        .mapTry(valueType::cast);
   }
 }

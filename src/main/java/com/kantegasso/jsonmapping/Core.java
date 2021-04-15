@@ -176,6 +176,7 @@ class Core {
         JSONObject jsonObject, Class<T> valueType, int recursionDepth) {
       return Try.of(() -> valueType.newInstance())
           .filterTry(_instance -> recursionDepth < Utils.MAX_RECURSION_DEPTH)
+          .recoverWith(IllegalAccessException.class, Utils.invokePrivateConstuctor(valueType))
           .mapTry(
               instance -> {
                 List.of(valueType.getDeclaredFields())

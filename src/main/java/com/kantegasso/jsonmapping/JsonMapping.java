@@ -7,7 +7,6 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import java.util.HashMap;
 import java.util.Map;
 import org.json.JSONObject;
 import org.json.JSONTokener;
@@ -18,6 +17,7 @@ import org.json.JSONTokener;
  * reflection-based methods.
  */
 public class JsonMapping {
+
   @Retention(RetentionPolicy.RUNTIME)
   @Target({ElementType.PARAMETER, ElementType.FIELD, ElementType.METHOD})
   public @interface JsonProperty {
@@ -53,42 +53,32 @@ public class JsonMapping {
       return Core.Read.populateInstanceFromJson(jsonObject, object);
     }
 
-    public static Try<Map<String, ?>> readMapFromJson(String jsonValue) {
-      return Write.stringAsJson(jsonValue).flatMapTry(JsonMapping.Read::readMapFromJsonObject);
+    public static Try<Map<String, ?>> mapFromJson(String jsonValue) {
+      return Write.stringAsJson(jsonValue).flatMapTry(JsonMapping.Read::mapFromJsonObject);
     }
 
-    public static Try<JSONObject> readJsonObjectFromFile(File file) {
+    public static Try<JSONObject> jsonObjectFromFile(File file) {
       return Try.of(() -> new FileInputStream(file))
           .mapTry(JSONTokener::new)
           .mapTry(JSONObject::new);
     }
 
-    public static Try<Map<String, Object>> readObjectMapFromJson(String jsonValue) {
-      return Try.of(() -> new JSONObject(jsonValue))
-          .flatMapTry(JsonMapping.Read::readObjectMapFromJsonObject);
+    public static Try<Map<String, Object>> objectMapFromJson(String jsonValue) {
+      return Write.stringAsJson(jsonValue).flatMapTry(JsonMapping.Read::objectMapFromJson);
     }
 
-    public static Try<Map<String, ?>> readMapFromJsonObject(JSONObject json) {
+    public static Try<Map<String, Object>> objectMapFromJson(JSONObject json) {
       return Try.of(json::toMap);
     }
 
-    public static Try<Map<String, Object>> readObjectMapFromJsonObject(JSONObject json) {
+    public static Try<Map<String, ?>> mapFromJsonObject(JSONObject json) {
       return Try.of(json::toMap);
     }
 
-    private static Map<String, String> convertToStringValues(Map<String, ?> map) {
-      Map<String, String> newMap = new HashMap<>();
-      map.forEach(
-          (key, value) -> {
-            newMap.put(key, String.valueOf(value));
-          });
-      return newMap;
-    }
-
-    public static Try<Map<String, String>> tryReadStringMapFromJson(String jsonValue) {
+    public static Try<Map<String, String>> stringMapFromJson(String jsonValue) {
       return Try.of(() -> new JSONObject(jsonValue))
-          .flatMapTry(JsonMapping.Read::readMapFromJsonObject)
-          .mapTry(JsonMapping.Read::convertToStringValues);
+          .flatMapTry(JsonMapping.Read::mapFromJsonObject)
+          .mapTry(Utils::convertToStringValues);
     }
   }
 }

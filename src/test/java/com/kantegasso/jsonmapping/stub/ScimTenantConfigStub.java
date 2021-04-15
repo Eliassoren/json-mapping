@@ -1,4 +1,4 @@
-package com.kantegasso.jsonmapping;
+package com.kantegasso.jsonmapping.stub;
 
 import com.kantegasso.jsonmapping.JsonMapping.JsonProperty;
 import java.util.Objects;

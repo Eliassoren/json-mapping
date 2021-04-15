@@ -1,4 +1,4 @@
-package com.kantegasso.jsonmapping;
+package com.kantegasso.jsonmapping.stub;
 
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;

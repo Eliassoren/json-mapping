@@ -1,6 +1,9 @@
 package com.kantegasso.jsonmapping;
 
-import com.kantegasso.jsonmapping.ScimTenantConfigStub.ScimProviderKind;
+import com.kantegasso.jsonmapping.stub.ApiTokenObjectStub;
+import com.kantegasso.jsonmapping.stub.ApplicationSecretStub;
+import com.kantegasso.jsonmapping.stub.ScimTenantConfigStub;
+import com.kantegasso.jsonmapping.stub.ScimTenantConfigStub.ScimProviderKind;
 import io.vavr.control.Try;
 import java.util.Collections;
 import java.util.HashMap;
@@ -30,7 +33,7 @@ public class JsonMappingTest {
     expected.put("a", "b");
     expected.put("c", "d");
     String json = JsonMapping.Write.mapAsJson(expected).map(JSONObject::toString).getOrElse("");
-    Map<String, String> actual = JsonMapping.Read.tryReadStringMapFromJson(json).getOrNull();
+    Map<String, String> actual = JsonMapping.Read.stringMapFromJson(json).getOrNull();
     Assert.assertArrayEquals(expected.keySet().toArray(), actual.keySet().toArray());
     Assert.assertArrayEquals(expected.values().toArray(), actual.values().toArray());
   }
@@ -40,7 +43,7 @@ public class JsonMappingTest {
     Map<String, String> expected = new HashMap<>();
     expected.put("test", "test");
     String json = "{'test': 'test'}";
-    Map<String, String> actual = JsonMapping.Read.tryReadStringMapFromJson(json).getOrNull();
+    Map<String, String> actual = JsonMapping.Read.stringMapFromJson(json).getOrNull();
     Assert.assertArrayEquals(expected.keySet().toArray(), actual.keySet().toArray());
     Assert.assertArrayEquals(expected.values().toArray(), actual.values().toArray());
   }
@@ -50,7 +53,7 @@ public class JsonMappingTest {
     Map<String, String> expected = new HashMap<>();
     expected.put("test", "test");
     String json = "{'test': 'test'}}";
-    Map<String, String> actual = JsonMapping.Read.tryReadStringMapFromJson(json).getOrNull();
+    Map<String, String> actual = JsonMapping.Read.stringMapFromJson(json).getOrNull();
     Assert.assertArrayEquals(expected.keySet().toArray(), actual.keySet().toArray());
     Assert.assertArrayEquals(expected.values().toArray(), actual.values().toArray());
   }
@@ -60,7 +63,7 @@ public class JsonMappingTest {
     Map<String, String> expected = new HashMap<>();
     expected.put("test", "test");
     String json = "{'test': 'test'}}";
-    Map<String, String> actual = JsonMapping.Read.tryReadStringMapFromJson(json).getOrNull();
+    Map<String, String> actual = JsonMapping.Read.stringMapFromJson(json).getOrNull();
     Assert.assertArrayEquals(expected.keySet().toArray(), actual.keySet().toArray());
     Assert.assertArrayEquals(expected.values().toArray(), actual.values().toArray());
   }
@@ -76,7 +79,7 @@ public class JsonMappingTest {
         Try.of(
                 () ->
                     (Map<String, HashMap<String, String>>)
-                        JsonMapping.Read.readMapFromJson(json).getOrNull())
+                        JsonMapping.Read.mapFromJson(json).getOrNull())
             .getOrElse(new HashMap<>());
     Assert.assertArrayEquals(expected.keySet().toArray(), actual.keySet().toArray());
     Assert.assertArrayEquals(expected.values().toArray(), actual.values().toArray());
@@ -89,7 +92,7 @@ public class JsonMappingTest {
         "test", Collections.singletonList(io.vavr.collection.HashMap.of("a", "b").toJavaMap()));
     String json = "{'test': [{'a': 'b'}]}";
 
-    Map<String, Object> actual = JsonMapping.Read.readObjectMapFromJson(json).getOrNull();
+    Map<String, Object> actual = JsonMapping.Read.objectMapFromJson(json).getOrNull();
     Assert.assertArrayEquals(actual.keySet().toArray(), expected.keySet().toArray());
     Assert.assertArrayEquals(actual.values().toArray(), expected.values().toArray());
   }
