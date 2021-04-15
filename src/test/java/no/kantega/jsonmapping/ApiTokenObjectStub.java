@@ -3,7 +3,6 @@ package no.kantega.jsonmapping;
 import java.beans.PropertyChangeListener;
 import java.util.Objects;
 
-
 public class ApiTokenObjectStub {
   private int ID;
   private String alias;
@@ -17,7 +16,6 @@ public class ApiTokenObjectStub {
     this.ID = 3;
   }
 
-  
   public String getAlias() {
     return alias;
   }
@@ -25,11 +23,11 @@ public class ApiTokenObjectStub {
   public void setAlias(String alias) {
     this.alias = alias;
   }
-  
+
   public long getValidFor() {
     return validFor;
   }
-  
+
   public void setValidFor(long validFor) {
     this.validFor = validFor;
   }
@@ -37,15 +35,15 @@ public class ApiTokenObjectStub {
   public long getCreatedAt() {
     return createdAt;
   }
-  
+
   public void setCreatedAt(long createdAt) {
     this.createdAt = createdAt;
   }
-  
+
   public String getHashed() {
     return hashed;
   }
-  
+
   public void setHashed(String hashed) {
     this.hashed = hashed;
   }
@@ -57,33 +55,27 @@ public class ApiTokenObjectStub {
   public void setSalt(String salt) {
     this.salt = salt;
   }
-  
+
   public String getUserKey() {
     return userKey;
   }
-  
+
   public void setUserKey(String userKey) {
     this.userKey = userKey;
   }
 
-  
   public int getID() {
     return ID;
   }
 
-  
   public void init() {}
 
-  
   public void save() {}
 
-  
   public void addPropertyChangeListener(PropertyChangeListener propertyChangeListener) {}
 
-  
   public void removePropertyChangeListener(PropertyChangeListener propertyChangeListener) {}
 
-  
   public boolean equals(Object o) {
     if (this == o) {
       return true;
@@ -101,7 +93,6 @@ public class ApiTokenObjectStub {
         && Objects.equals(userKey, that.userKey);
   }
 
-  
   public int hashCode() {
     return Objects.hash(ID, alias, createdAt, hashed, salt, userKey, validFor);
   }

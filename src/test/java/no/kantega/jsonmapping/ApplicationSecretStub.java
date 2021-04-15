@@ -42,7 +42,6 @@ public class ApplicationSecretStub {
     return this.hashed;
   }
 
-
   public static String hash(String salt, String secret) {
     try {
       SecretKeyFactory skf = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA512");

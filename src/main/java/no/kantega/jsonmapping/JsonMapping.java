@@ -13,9 +13,9 @@ import org.json.JSONObject;
 import org.json.JSONTokener;
 
 /**
- * Library for working with <code>org.json</code> objects written in vavr-style.
- * Has both secure wrapping of JSONObject's standard methods for construction and serialization, as
- * well as generic, reflection-based methods.
+ * Library for working with <code>org.json</code> objects written in vavr-style. Has both secure
+ * wrapping of JSONObject's standard methods for construction and serialization, as well as generic,
+ * reflection-based methods.
  */
 public class JsonMapping {
   @Retention(RetentionPolicy.RUNTIME)
@@ -24,7 +24,7 @@ public class JsonMapping {
     String value() default "";
   }
 
-  static class Write {
+  public static class Write {
     public static <T> Try<JSONObject> objectAsJson(T object) {
       return Core.Write.objectAsJson(object);
     }
@@ -38,7 +38,7 @@ public class JsonMapping {
     }
   }
 
-  static class Read {
+  public static class Read {
 
     public static <T> Try<T> valueFromJson(JSONObject json, Class<T> valueType) {
       return Core.Read.valueFromJson(json, valueType);

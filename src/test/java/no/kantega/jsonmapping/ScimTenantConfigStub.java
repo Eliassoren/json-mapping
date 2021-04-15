@@ -6,7 +6,6 @@ import org.apache.commons.lang3.StringUtils;
 
 public class ScimTenantConfigStub {
 
-
   /** Uniquely identifies the tenant and links the config and Internal directory */
   private String tenantId;
 
@@ -103,5 +102,4 @@ public class ScimTenantConfigStub {
       return this.description;
     }
   }
-
 }

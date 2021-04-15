@@ -1,0 +1,41 @@
+default:
+  image: maven:3.5.3-jdk-8
+  before_script:
+    - export PATH=$JAVA_HOME/bin:$PATH
+    - |
+      if [ ! -d ".m2" ]
+      then
+        mkdir .m2
+      fi
+    - echo $MVN_SETTINGS > .m2/settings.xml
+    - export MAVEN_CLI_OPTS="-s .m2/settings.xml --batch-mode"
+    - export MAVEN_OPTS="-Dmaven.repo.local=.m2/repository"
+
+
+stages:
+  - test
+  - deploy
+
+test:
+  stage: test
+  script:
+    - mvn test
+  only:
+    - merge_requests
+
+deploy:
+  stage: deploy
+  script:
+    - git config user.email "nomail@kantega.no"
+    - git config user.name "GitLab CI"
+    - eval $(ssh-agent -s)
+    - ssh-add <(echo "$GITLAB_DEPLOY_KEY")
+    - mkdir -p ~/.ssh
+    - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
+    - git checkout -B "$CI_RELEASE_BRANCH" # mvn release doesn't work on detached.
+    - mvn $MAVEN_CLI_OPTS -Dresume=false release:prepare release:perform
+  only:
+    - master
+
+
+

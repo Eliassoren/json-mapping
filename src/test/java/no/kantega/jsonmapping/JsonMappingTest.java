@@ -1,6 +1,5 @@
 package no.kantega.jsonmapping;
 
-
 import io.vavr.control.Try;
 import java.util.Collections;
 import java.util.HashMap;

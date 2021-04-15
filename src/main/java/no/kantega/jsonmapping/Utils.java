@@ -90,8 +90,7 @@ public class Utils {
         || value.getClass().isEnum();
   }
 
-  static Object convertJavaLangNumber(
-    Object value, Class<?> valueType, Class<?> typeToConvert)
+  static Object convertJavaLangNumber(Object value, Class<?> valueType, Class<?> typeToConvert)
       throws IllegalAccessException, InvocationTargetException {
     // Handle problem with conversion between java.lang - Integer, Long etc.
     Method valueConversionMethod =
@@ -102,8 +101,7 @@ public class Utils {
     return valueConversionMethod.invoke(value);
   }
 
-  static boolean isTypeApplicableToOtherType(
-    Class<?> typeTo, Class<?> typeFrom) {
+  static boolean isTypeApplicableToOtherType(Class<?> typeTo, Class<?> typeFrom) {
     return isTypeEquals(typeFrom, typeTo)
         || (isJavaLangNumber(typeFrom) && isJavaLangNumber(typeTo))
         || (typeTo.isEnum() && typeFrom.equals(String.class))

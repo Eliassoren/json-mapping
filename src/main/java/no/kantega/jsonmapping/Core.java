@@ -9,7 +9,6 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.HashMap;
 import java.util.Map;
-
 import no.kantega.jsonmapping.JsonMapping.JsonProperty;
 import org.json.JSONObject;
 
@@ -22,17 +21,18 @@ class Core {
     }
 
     private static <T> Try<T> valueFromJson(
-      JSONObject jsonObject, Class<T> valueType, int recursionDepth) {
+        JSONObject jsonObject, Class<T> valueType, int recursionDepth) {
       return parseObjectWithConstructor(jsonObject, valueType, recursionDepth)
-        .orElse(parseMutableObjectWithSetters(jsonObject, valueType, recursionDepth))
-        .orElse(parseObjectWithFields(jsonObject, valueType, recursionDepth));
+          .orElse(parseMutableObjectWithSetters(jsonObject, valueType, recursionDepth))
+          .orElse(parseObjectWithFields(jsonObject, valueType, recursionDepth));
     }
 
     static <T> Try<Void> populateInstanceFromJson(JSONObject jsonObject, T object) {
       return populateInstanceFromJson(jsonObject, object, 0);
     }
 
-    private static <T> Try<Void> populateInstanceFromJson(JSONObject jsonObject, T object, int recursionDepth) {
+    private static <T> Try<Void> populateInstanceFromJson(
+        JSONObject jsonObject, T object, int recursionDepth) {
       return Try.of(
               () ->
                   List.of(object.getClass().getDeclaredMethods())
@@ -83,7 +83,8 @@ class Core {
         JSONObject jsonObject, Class<T> valueType, int recursionDepth) {
       return Try.of(valueType::newInstance)
           .filterTry(object -> recursionDepth < Utils.MAX_RECURSION_DEPTH)
-          .filterTry(object -> populateInstanceFromJson(jsonObject, object, recursionDepth).isSuccess());
+          .filterTry(
+              object -> populateInstanceFromJson(jsonObject, object, recursionDepth).isSuccess());
     }
 
     private static <T> Try<T> parseObjectWithConstructor(
@@ -157,7 +158,8 @@ class Core {
                                   .getDeclaredMethod("valueOf", String.class)
                                   .invoke(null, value))
                       .getOrElse(value);
-                } else if (Utils.isJavaLangNumber(parameterType) && Utils.isJavaLangNumber(valueType)) {
+                } else if (Utils.isJavaLangNumber(parameterType)
+                    && Utils.isJavaLangNumber(valueType)) {
                   return Try.of(() -> Utils.convertJavaLangNumber(value, valueType, parameterType))
                       .getOrElse(value);
                 } else if (value instanceof HashMap) {
@@ -184,7 +186,8 @@ class Core {
                           try {
                             Utils.makeFieldAccessibleAndModifiable(field);
                             Class<?> fieldType = Utils.convertPrimitiveType(field.getType());
-                            Object parsedValue = parseValue(fieldType, valueFromJson, recursionDepth);
+                            Object parsedValue =
+                                parseValue(fieldType, valueFromJson, recursionDepth);
                             field.set(instance, parsedValue);
                           } catch (Exception ignored) {
                           }
