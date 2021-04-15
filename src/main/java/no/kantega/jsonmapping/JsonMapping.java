@@ -3,6 +3,10 @@ package no.kantega.jsonmapping;
 import io.vavr.control.Try;
 import java.io.File;
 import java.io.FileInputStream;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 import java.util.HashMap;
 import java.util.Map;
 import org.json.JSONObject;
@@ -14,6 +18,12 @@ import org.json.JSONTokener;
  * well as generic, reflection-based methods.
  */
 public class JsonMapping {
+  @Retention(RetentionPolicy.RUNTIME)
+  @Target({ElementType.PARAMETER, ElementType.FIELD, ElementType.METHOD})
+  public @interface JsonProperty {
+    String value() default "";
+  }
+
   static class Write {
     public static <T> Try<JSONObject> objectAsJson(T object) {
       return Core.Write.objectAsJson(object);
