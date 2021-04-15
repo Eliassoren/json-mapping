@@ -1,0 +1,9 @@
+.idea
+!.idea/codeStyles
+!.idea/google-java-format.xml
+*iml
+target*
+setup.sh
+*jks
+.DS_Store
+*.fbp
