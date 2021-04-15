@@ -1,4 +1,4 @@
-package no.kantega.jsonmapping;
+package com.kantegasso.jsonmapping;
 
 import java.beans.PropertyChangeListener;
 import java.util.Objects;

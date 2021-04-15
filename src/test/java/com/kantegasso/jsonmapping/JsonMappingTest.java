@@ -1,11 +1,11 @@
-package no.kantega.jsonmapping;
+package com.kantegasso.jsonmapping;
 
+import com.kantegasso.jsonmapping.ScimTenantConfigStub.ScimProviderKind;
 import io.vavr.control.Try;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import no.kantega.jsonmapping.ScimTenantConfigStub.ScimProviderKind;
 import org.json.JSONObject;
 import org.junit.Assert;
 import org.junit.Test;

@@ -1,5 +1,6 @@
-package no.kantega.jsonmapping;
+package com.kantegasso.jsonmapping;
 
+import com.kantegasso.jsonmapping.JsonMapping.JsonProperty;
 import io.vavr.collection.List;
 import io.vavr.control.Option;
 import io.vavr.control.Try;
@@ -9,7 +10,6 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.HashMap;
 import java.util.Map;
-import no.kantega.jsonmapping.JsonMapping.JsonProperty;
 import org.json.JSONObject;
 
 class Core {

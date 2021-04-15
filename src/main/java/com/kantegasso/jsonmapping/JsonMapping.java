@@ -1,4 +1,4 @@
-package no.kantega.jsonmapping;
+package com.kantegasso.jsonmapping;
 
 import io.vavr.control.Try;
 import java.io.File;

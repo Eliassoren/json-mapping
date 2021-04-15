@@ -1,7 +1,7 @@
-package no.kantega.jsonmapping;
+package com.kantegasso.jsonmapping;
 
+import com.kantegasso.jsonmapping.JsonMapping.JsonProperty;
 import java.util.Objects;
-import no.kantega.jsonmapping.JsonMapping.JsonProperty;
 import org.apache.commons.lang3.StringUtils;
 
 public class ScimTenantConfigStub {

@@ -11,20 +11,69 @@ default:
     - export MAVEN_CLI_OPTS="-s .m2/settings.xml --batch-mode"
     - export MAVEN_OPTS="-Dmaven.repo.local=.m2/repository"
 
-
 stages:
+  - build
+  - security
   - test
   - deploy
 
+cache:
+  key: ${CI_COMMIT_REF_SLUG}
+  paths:
+    - .m2/repository/
+    - target/classes/
+
+build:
+  stage: build
+  script:
+    - mvn $MAVEN_CLI_OPTS clean compile
+  only:
+    - merge_request
+    - master
+    - $JOB_TYPE == "DAILY_PIPELINE"
+  except:
+    variables:
+      - $CI_MERGE_REQUEST_TITLE =~ /^WIP:.*/
+
+security:
+  stage: security
+  dependencies:
+    - build
+  script:
+    - mvn $MAVEN_CLI_OPTS spotbugs:spotbugs
+    - mvn $MAVEN_CLI_OPTS spotbugs:check
+  allow_failure: true
+  artifacts:
+    when: always
+    paths:
+      - target/spotbugsXml.xml
+  only:
+    - merge_request
+    - master
+    - $JOB_TYPE == "DAILY_PIPELINE"
+  except:
+    variables:
+      - $CI_MERGE_REQUEST_TITLE =~ /^WIP:.*/
+
+
 test:
   stage: test
+  dependencies:
+    - build
   script:
-    - mvn test
+    - mvn $MAVEN_CLI_OPTS test
   only:
-    - merge_requests
+    - merge_request
+    - master
+    - $JOB_TYPE == "DAILY_PIPELINE"
+  except:
+    variables:
+      - $CI_MERGE_REQUEST_TITLE =~ /^WIP:.*/
 
 deploy:
   stage: deploy
+  dependencies:
+    - test
   script:
     - git config user.email "nomail@kantega.no"
     - git config user.name "GitLab CI"
