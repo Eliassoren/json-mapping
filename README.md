@@ -34,7 +34,7 @@ This project uses a [maven plugin](https://github.com/Cosium/git-code-format-mav
 ```mvn git-code-format:format-code```
 
 #### Manually validate files
-```mvn git-code-format:validate-code-format``
+```mvn git-code-format:validate-code-format```
 
 ## Spotbugs
 
