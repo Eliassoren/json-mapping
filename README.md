@@ -102,6 +102,10 @@ public class User {
     @JsonProperty("groups")
     private List<String> groups;
 
+    private User() { // empty constructor needed to parse object.
+        this.ID = -1;
+    }
+
     User(int ID) {
         this.ID = ID;
     }
