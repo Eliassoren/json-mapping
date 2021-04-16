@@ -60,7 +60,7 @@ This project uses Spotbugs and FindSecBugs static analysis plugins to ensure cod
 
 # Usage
 
-JsonMapping has two components, the `Write` component and the `Read` component. It handles fields which are accessible through accessors, but can also populate private, unmodifiable fields.
+JsonMapping has two components, the `Write` component and the `Read` component. It handles fields which are accessible through accessors, but can also populate private, unmodifiable fields. Nested objects are supported, and serializing objects with non-serializable fields may work if you only annotate serializable fields.
 
 
 ```java
@@ -72,7 +72,7 @@ JsonMapping has two components, the `Write` component and the `Read` component. 
       "group 2"
     );
     user.setGroups(groups);
-    Try<JSONObject> maybeJson = JsonMapping.Write.objectAsJson(expected);
+    Try<JSONObject> maybeJson = JsonMapping.Write.objectAsJson(user);
     /* json:
         {
             "ID": 8777,
