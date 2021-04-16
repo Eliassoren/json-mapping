@@ -2,9 +2,12 @@ package com.kantegasso.jsonmapping;
 
 import com.kantegasso.jsonmapping.stub.ApiTokenObjectStub;
 import com.kantegasso.jsonmapping.stub.ApplicationSecretStub;
+import com.kantegasso.jsonmapping.stub.Repository;
 import com.kantegasso.jsonmapping.stub.ScimTenantConfigStub;
 import com.kantegasso.jsonmapping.stub.ScimTenantConfigStub.ScimProviderKind;
+import com.kantegasso.jsonmapping.stub.User;
 import io.vavr.control.Try;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -125,5 +128,26 @@ public class JsonMappingTest {
     ApiTokenObjectStub actual = new ApiTokenObjectStub();
     JsonMapping.Read.populateInstanceFromJson(json, actual);
     Assert.assertEquals(expected, actual);
+  }
+
+  @Test
+  public void testWriteDummyUserFromJson() {
+    Repository repository = new Repository();
+    User user = repository.createUser(); // ID = 8777
+    user.setUsername("jondoe");
+    user.setEmail("jondoe@example.com");
+    List<String> groups = Arrays.asList("group 1", "group 2");
+    user.setGroups(groups);
+    JSONObject json = JsonMapping.Write.objectAsJson(user).getOrNull();
+    /* json:
+        {
+            "ID": 8777,
+            "username": "jondoe",
+            "email": "jondoe@example.com",
+            "groups": ["group 1", "group 2"]
+        }
+    */
+    User actual = JsonMapping.Read.valueFromJson(json, User.class).getOrNull();
+    Assert.assertEquals(user, actual); // true
   }
 }

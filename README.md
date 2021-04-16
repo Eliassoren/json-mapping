@@ -53,15 +53,29 @@ This project uses Spotbugs and FindSecBugs static analysis plugins to ensure cod
 ### Open report from CI/CD pipeline
 
 1. Download spotbugsXml.xml from gitlab CI/CD job
-2. ```mvn spotbugs:gui``` -->
+2. ```mvn spotbugs:gui``` 
 3. Open spotbugsXml.xml 
 4. Save as html 
 5. Open in browser
 
 # Usage
 
-JsonMapping has two components, the `Write` component and the `Read` component. It handles fields which are accessible through accessors, but can also populate private, unmodifiable fields.
+JsonMapping has two components, the `Write` component and the `Read` component. It handles fields which are accessible through accessors, but can also populate private, unmodifiable fields. Nested objects are supported, and serializing objects with non-serializable fields may work if you only annotate serializable fields.
 
+Add to your pom:
+
+```xml
+<dependencies>
+    <!-- ...other dependencies -->
+    <dependency>
+        <groupId>com.kantegasso</groupId>
+        <artifactId>json-mapping</artifactId>
+        <version>1.1.15</version> <!-- whatever version is latest --->
+    </dependency>
+</dependencies>
+```
+
+The below example shows usage of the Write and Read component using a simple Java object. The whole API surface exposes objects wrapped in the VAVR Try monad. This library will not throw any excepctions, but wraps them in the result type.
 
 ```java
     User user = repository.createUser(); // ID = 8777
@@ -72,7 +86,7 @@ JsonMapping has two components, the `Write` component and the `Read` component. 
       "group 2"
     );
     user.setGroups(groups);
-    Try<JSONObject> maybeJson = JsonMapping.Write.objectAsJson(expected);
+    Try<JSONObject> maybeJson = JsonMapping.Write.objectAsJson(user);
     /* json:
         {
             "ID": 8777,
@@ -101,6 +115,10 @@ public class User {
 
     @JsonProperty("groups")
     private List<String> groups;
+
+    private User() { // empty constructor needed to parse object.
+        this.ID = -1;
+    }
 
     User(int ID) {
         this.ID = ID;

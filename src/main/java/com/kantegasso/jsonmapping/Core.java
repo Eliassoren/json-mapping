@@ -56,7 +56,8 @@ class Core {
                           .mapTry(value -> jsonObject.put(fieldName, value));
                     });
                 return jsonObject;
-              });
+              })
+          .filterTry(json -> !json.isEmpty());
     }
 
     /*
