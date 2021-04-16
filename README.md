@@ -75,6 +75,8 @@ Add to your pom:
 </dependencies>
 ```
 
+The below example shows usage of the Write and Read component using a simple Java object. The whole API surface exposes objects wrapped in the VAVR Try monad. This library will not throw any excepctions, but wraps them in the result type.
+
 ```java
     User user = repository.createUser(); // ID = 8777
     user.setUsername("jondoe");
