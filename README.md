@@ -53,7 +53,7 @@ This project uses Spotbugs and FindSecBugs static analysis plugins to ensure cod
 ### Open report from CI/CD pipeline
 
 1. Download spotbugsXml.xml from gitlab CI/CD job
-2. ```mvn spotbugs:gui``` -->
+2. ```mvn spotbugs:gui``` 
 3. Open spotbugsXml.xml 
 4. Save as html 
 5. Open in browser
