@@ -78,6 +78,7 @@ deploy:
     - export MAVEN_REPO_USER=$MAVEN_REPO_USER
     - export MAVEN_REPO_PASS=$MAVEN_REPO_PASS
     - echo $MVN_SETTINGS > .m2/settings.xml
+    - cat .m2/settings.xml
     - git config user.email "nomail@kantega.no"
     - git config user.name "GitLab CI"
     - eval $(ssh-agent -s)
