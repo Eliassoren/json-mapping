@@ -72,7 +72,7 @@ JsonMapping has two components, the `Write` component and the `Read` component. 
       "group 2"
     );
     user.setGroups(groups);
-    JSONObject json = JsonMapping.Write.objectAsJson(expected).getOrNull();
+    Try<JSONObject> maybeJson = JsonMapping.Write.objectAsJson(expected);
     /* json:
         {
             "ID": 8777,
@@ -81,8 +81,9 @@ JsonMapping has two components, the `Write` component and the `Read` component. 
             "groups": ["group 1", "group 2"]
         }
     */
-    User deserialized = JsonMapping.Read.valueFromJson(json, User.class);
-    assertEquals(user, deserialized); // true
+    Try<User> deserialized = maybeJson
+        .flatMapTry(json -> JsonMapping.Read.valueFromJson(json, User.class));
+    assertEquals(user, deserialized.getOrNull()); // true
 ```
 
 Data objects can (and should) be annotated with the @JsonProperty annotation to ensure consistency in case of renaming variables.
