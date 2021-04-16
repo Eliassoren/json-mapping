@@ -11,7 +11,7 @@ With annotations. Available from Nexus
 If you develop for KSSO, see the [internal dev wiki](https://kantega-sso.atlassian.net/wiki/spaces/KSI/pages/345636908/Sett+opp+utviklingsmilj+p+lokal+maskin) for details on how to configure the Atlassian SDK so your local environment is compatible.
 
 1. Have Java 8 installed ([AdoptOpenJdk](https://adoptopenjdk.net/) is recommended for Atlassian development) and $JAVA_HOME on your path. 
-2. Have [maven](https://maven.apache.org/) installed, preferrably version 5.3.2 (which matches Atlassian SDK). 
+2. Have [maven](https://maven.apache.org/) installed, preferrably version 5.3.4 (which matches Atlassian SDK 8.0.16 currently used in KSSO). 
 3. Download [settings.xml from the Kantega SSO Wiki](https://kantega-sso.atlassian.net/wiki/download/attachments/345636908/settings.xml) and add to ~/.m2.
 
 ## Contributing Code
@@ -38,12 +38,23 @@ This project uses a [maven plugin](https://github.com/Cosium/git-code-format-mav
 
 ## Spotbugs
 
-This project uses Spotbugs and FindSecBugs static analysis to ensure code quality. It is run automatically in pipelines, and could be run locally or in IDE.
+This project uses Spotbugs and FindSecBugs static analysis plugins to ensure code quality and security. It is run automatically in pipelines, and could be run locally in maven or in IDEA.
 
-### Open report in project root folder:
-1. Download spotbugsXml.xml from gitlab job
+### Local
+
+1. `mvn compile`
+2. `mvn spotbugs:spotbugs`
+3. `mvn spotbugs:gui`
+4. Open `target/spotbugsXml.xml`
+5. Save as html 
+6. Open in browser
+
+
+### Open report from CI/CD pipeline
+
+1. Download spotbugsXml.xml from gitlab CI/CD job
 2. ```mvn spotbugs:gui``` -->
-3. Ppen spotbugsXml.xml 
+3. Open spotbugsXml.xml 
 4. Save as html 
-5. Ppen in browser
+5. Open in browser
 
