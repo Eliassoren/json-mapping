@@ -23,4 +23,20 @@
     <Bug pattern="DM_CONVERT_CASE" />
   </Match>
 
+  <Match>
+    <!-- try/catch of general ignored exception -->
+    <Bug pattern="REC_CATCH_EXCEPTION" />
+  </Match>
+
+  <Match>
+    <!-- try/catch of general deliberately ignored exception -->
+    <Bug pattern="DE_MIGHT_IGNORE" />
+  </Match>
+
+  <Match>
+    <!-- False positive -->
+    <Class name="Utils" />
+    <Method name="~.*?makeField.*" />
+    <Bug pattern="DP_DO_INSIDE_DO_PRIVILEGED" />
+  </Match>
 </FindBugsFilter>
