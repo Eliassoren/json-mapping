@@ -39,5 +39,4 @@
     <Method name="~.*?makeField.*" />
     <Bug pattern="DP_DO_INSIDE_DO_PRIVILEGED" />
   </Match>
-
 </FindBugsFilter>

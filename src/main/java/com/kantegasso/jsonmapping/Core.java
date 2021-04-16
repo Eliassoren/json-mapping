@@ -14,6 +14,83 @@ import org.json.JSONObject;
 
 class Core {
 
+  static class Write {
+
+    static <T> Try<JSONObject> objectAsJson(T object) {
+      return objectAsJson(object, 0);
+    }
+
+    static <T> Try<JSONObject> objectAsJson(T object, int recursionDepth) {
+      return writeJsonFromAccessors(object, recursionDepth)
+          .orElse(writeJsonFromFields(object, recursionDepth));
+    }
+
+    private static <T> Try<JSONObject> writeJsonFromFields(T object, int recursionDepth) {
+      return Try.of(() -> object.getClass().getDeclaredFields())
+          .mapTry(List::of)
+          .filterTry(
+              fields -> !fields.isEmpty(), () -> new RuntimeException("Instance has no fields"))
+          .filterTry(fields -> recursionDepth < Utils.MAX_RECURSION_DEPTH)
+          .mapTry(
+              fields -> {
+                JSONObject jsonObject = new JSONObject();
+                fields.forEach(
+                    field -> {
+                      String fieldName = Utils.parseFieldName(field);
+                      Try.of(
+                              () -> {
+                                Utils.makeFieldAccessible(field);
+                                return field.get(object);
+                              })
+                          .mapTry(
+                              value -> {
+                                if (Utils.isBasicJavaObject(value)) {
+                                  return value;
+                                } else {
+                                  return objectAsJson(value, recursionDepth + 1)
+                                      .getOrElseThrow(
+                                          () ->
+                                              new RuntimeException("Failed to write json nested"));
+                                }
+                              })
+                          .mapTry(value -> jsonObject.put(fieldName, value));
+                    });
+                return jsonObject;
+              });
+    }
+
+    /*
+     * Note that @JsonProperty annotations are needed on accessors.
+     */
+    private static <T> Try<JSONObject> writeJsonFromAccessors(T object, int recursionDepth) {
+      return Try.of(() -> object.getClass())
+          .filterTry(_valueType -> recursionDepth < Utils.MAX_RECURSION_DEPTH)
+          .mapTry(
+              valueType -> {
+                JSONObject jsonObject = new JSONObject();
+                List.of(valueType.getDeclaredMethods())
+                    .filter(Utils::isMethodAccessor)
+                    .filter(accessor -> accessor.getAnnotation(JsonProperty.class) != null)
+                    .forEach(
+                        accessor -> {
+                          String fieldName = Utils.parseFieldName(accessor);
+                          Try.of(() -> accessor.invoke(object, valueType))
+                              .mapTry(
+                                  value -> {
+                                    if (Utils.isBasicJavaObject(value)) {
+                                      return value;
+                                    } else {
+                                      return objectAsJson(value, recursionDepth + 1);
+                                    }
+                                  })
+                              .mapTry(value -> jsonObject.put(fieldName, value));
+                        });
+                return jsonObject;
+              })
+          .filterTry(json -> !json.isEmpty());
+    }
+  }
+
   static class Read {
 
     static <T> Try<T> valueFromJson(JSONObject jsonObject, Class<T> valueType) {
@@ -51,11 +128,7 @@ class Core {
       return Try.of(
               () -> {
                 Map<String, Object> jsonMap = jsonObject.toMap();
-                String fieldName =
-                    Option.of(setter.getAnnotation(JsonProperty.class))
-                        .map(JsonProperty::value)
-                        .filter(value -> !value.isEmpty())
-                        .getOrElse(Utils.asField(setter.getName()));
+                String fieldName = Utils.parseFieldName(setter);
                 return jsonMap.get(fieldName);
               })
           .flatMapTry(
@@ -182,7 +255,7 @@ class Core {
                 List.of(valueType.getDeclaredFields())
                     .forEach(
                         field -> {
-                          String fieldName = Utils.getFieldName(field);
+                          String fieldName = Utils.parseFieldName(field);
                           Object valueFromJson = jsonObject.get(fieldName);
                           try {
                             Utils.makeFieldModifiable(field);
@@ -195,91 +268,6 @@ class Core {
                         });
                 return instance;
               });
-    }
-  }
-
-  static class Write {
-
-    static <T> Try<JSONObject> objectAsJson(T object) {
-      return objectAsJson(object, 0);
-    }
-
-    static <T> Try<JSONObject> objectAsJson(T object, int recursionDepth) {
-      return writeJsonFromAccessors(object, recursionDepth)
-          .orElse(writeJsonFromFields(object, recursionDepth));
-    }
-
-    private static <T> Try<JSONObject> writeJsonFromFields(T object, int recursionDepth) {
-      return Try.of(() -> object.getClass().getDeclaredFields())
-          .mapTry(List::of)
-          .filterTry(
-              fields -> !fields.isEmpty(), () -> new RuntimeException("Instance has no fields"))
-          .filterTry(fields -> recursionDepth < Utils.MAX_RECURSION_DEPTH)
-          .mapTry(
-              fields -> {
-                JSONObject jsonObject = new JSONObject();
-                fields.forEach(
-                    field -> {
-                      String fieldName =
-                          Option.of(field.getAnnotation(JsonProperty.class))
-                              .filter(property -> !property.value().isEmpty())
-                              .map(JsonProperty::value)
-                              .getOrElse(field.getName());
-                      Try.of(
-                              () -> {
-                                Utils.makeFieldAccessible(field);
-                                return field.get(object);
-                              })
-                          .mapTry(
-                              value -> {
-                                if (Utils.isBasicJavaObject(value)) {
-                                  return value;
-                                } else {
-                                  return objectAsJson(value, recursionDepth + 1)
-                                      .getOrElseThrow(
-                                          () ->
-                                              new RuntimeException("Failed to write json nested"));
-                                }
-                              })
-                          .mapTry(value -> jsonObject.put(fieldName, value));
-                    });
-                return jsonObject;
-              });
-    }
-
-    /*
-     * Note that @JsonProperty annotations are needed on accessors.
-     */
-    private static <T> Try<JSONObject> writeJsonFromAccessors(T object, int recursionDepth) {
-      return Try.of(() -> object.getClass())
-          .filterTry(_valueType -> recursionDepth < Utils.MAX_RECURSION_DEPTH)
-          .mapTry(
-              valueType -> {
-                JSONObject jsonObject = new JSONObject();
-                List.of(valueType.getDeclaredMethods())
-                    .filter(Utils::isMethodAccessor)
-                    .filter(accessor -> accessor.getAnnotation(JsonProperty.class) != null)
-                    .forEach(
-                        accessor -> {
-                          String fieldName =
-                              Option.of(accessor.getAnnotation(JsonProperty.class))
-                                  .filter(property -> !property.value().isEmpty())
-                                  .map(JsonProperty::value)
-                                  .getOrElse(Utils.asField(accessor.getName()));
-                          Try.of(() -> accessor.invoke(object, valueType))
-                              .mapTry(
-                                  value -> {
-                                    if (Utils.isBasicJavaObject(value)) {
-                                      return value;
-                                    } else {
-                                      return objectAsJson(value, recursionDepth + 1);
-                                    }
-                                  })
-                              .mapTry(value -> jsonObject.put(fieldName, value));
-                        });
-                return jsonObject;
-              })
-          .filterTry(json -> !json.isEmpty());
     }
   }
 }

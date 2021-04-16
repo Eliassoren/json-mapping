@@ -85,7 +85,7 @@ class Utils {
         || (typeFrom.equals(HashMap.class) && !isBasicJavaObject(typeTo));
   }
 
-  static String getFieldName(Field field) {
+  static String parseFieldName(Field field) {
     return Option.of(field.getAnnotation(JsonProperty.class))
         .map(JsonProperty::value)
         .filter(value -> !value.isEmpty())
@@ -141,5 +141,12 @@ class Utils {
                     .get()
                     .newInstance())
         .mapTry(valueType::cast);
+  }
+
+  static String parseFieldName(Method method) {
+    return Option.of(method.getAnnotation(JsonProperty.class))
+        .map(JsonProperty::value)
+        .filter(value -> !value.isEmpty())
+        .getOrElse(asField(method.getName()));
   }
 }
