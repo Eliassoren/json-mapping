@@ -58,3 +58,85 @@ This project uses Spotbugs and FindSecBugs static analysis plugins to ensure cod
 4. Save as html 
 5. Open in browser
 
+# Usage
+
+JsonMapping has two components, the `Write` component and the `Read` component. It handles fields which are accessible through accessors, but can also populate private, unmodifiable fields.
+
+
+```java
+    User user = repository.createUser(); // ID = 8777
+    user.setUsername("jondoe");
+    user.setEmail("jondoe@example.com");
+    List<String> groups = Arrays.asList(
+      "group 1",
+      "group 2"
+    );
+    user.setGroups(groups);
+    Try<JSONObject> maybeJson = JsonMapping.Write.objectAsJson(expected);
+    /* json:
+        {
+            "ID": 8777,
+            "username": "jondoe",
+            "email": "jondoe@example.com",
+            "groups": ["group 1", "group 2"]
+        }
+    */
+    Try<User> deserialized = maybeJson
+        .flatMapTry(json -> JsonMapping.Read.valueFromJson(json, User.class));
+    assertEquals(user, deserialized.getOrNull()); // true
+```
+
+Data objects can (and should) be annotated with the @JsonProperty annotation to ensure consistency in case of renaming variables. You may annotate fields (like shown in User.java), but could also annotate parameters in a constructor or getters (and setters).
+
+```java
+public class User {
+    @JsonProperty("ID")
+    private final int ID;
+
+    @JsonProperty("username")
+    private String username;
+
+    @JsonProperty("email")
+    private String email;
+
+    @JsonProperty("groups")
+    private List<String> groups;
+
+    User(int ID) {
+        this.ID = ID;
+    }
+
+    public int getID() {
+        return ID;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public List<String> getGroups() {
+        return groups;
+    }
+
+    public void setGroups(List<String> groups) {
+        this.groups = groups;
+    }
+
+    public void addGroup(String group) {
+        groups.add(group);
+    }
+}
+```
+
