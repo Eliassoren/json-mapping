@@ -62,6 +62,18 @@ This project uses Spotbugs and FindSecBugs static analysis plugins to ensure cod
 
 JsonMapping has two components, the `Write` component and the `Read` component. It handles fields which are accessible through accessors, but can also populate private, unmodifiable fields. Nested objects are supported, and serializing objects with non-serializable fields may work if you only annotate serializable fields.
 
+Add to your pom:
+
+```xml
+<dependencies>
+    <!-- ...other dependencies -->
+    <dependency>
+        <groupId>com.kantegasso</groupId>
+        <artifactId>json-mapping</artifactId>
+        <version>1.1.15</version> <!-- whatever version is latest --->
+    </dependency>
+</dependencies>
+```
 
 ```java
     User user = repository.createUser(); // ID = 8777
