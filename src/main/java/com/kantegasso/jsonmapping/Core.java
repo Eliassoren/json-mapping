@@ -22,9 +22,6 @@ class Core {
 
     private static <T> Try<T> valueFromJson(
         JSONObject jsonObject, Class<T> valueType, int recursionDepth) {
-      Try<T> a = parseObjectWithConstructor(jsonObject, valueType, recursionDepth);
-      Try<T> b = parseMutableObjectWithSetters(jsonObject, valueType, recursionDepth);
-      Try<T> c = parseObjectWithFields(jsonObject, valueType, recursionDepth);
       return parseObjectWithConstructor(jsonObject, valueType, recursionDepth)
           .orElse(parseMutableObjectWithSetters(jsonObject, valueType, recursionDepth))
           .orElse(parseObjectWithFields(jsonObject, valueType, recursionDepth));
@@ -188,7 +185,7 @@ class Core {
                           String fieldName = Utils.getFieldName(field);
                           Object valueFromJson = jsonObject.get(fieldName);
                           try {
-                            Utils.makeFieldAccessibleAndModifiable(field);
+                            Utils.makeFieldModifiable(field);
                             Class<?> fieldType = Utils.convertPrimitiveType(field.getType());
                             Object parsedValue =
                                 parseValue(fieldType, valueFromJson, recursionDepth);
@@ -230,7 +227,7 @@ class Core {
                               .getOrElse(field.getName());
                       Try.of(
                               () -> {
-                                field.setAccessible(true);
+                                Utils.makeFieldAccessible(field);
                                 return field.get(object);
                               })
                           .mapTry(
