@@ -86,7 +86,7 @@ JsonMapping has two components, the `Write` component and the `Read` component. 
     assertEquals(user, deserialized.getOrNull()); // true
 ```
 
-Data objects can (and should) be annotated with the @JsonProperty annotation to ensure consistency in case of renaming variables.
+Data objects can (and should) be annotated with the @JsonProperty annotation to ensure consistency in case of renaming variables. You may annotate fields (like shown in User.java), but could also annotate parameters in a constructor or getters (and setters).
 
 ```java
 public class User {
