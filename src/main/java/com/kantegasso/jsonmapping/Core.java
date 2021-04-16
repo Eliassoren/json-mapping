@@ -56,7 +56,8 @@ class Core {
                           .mapTry(value -> jsonObject.put(fieldName, value));
                     });
                 return jsonObject;
-              });
+              })
+          .filterTry(json -> !json.isEmpty());
     }
 
     /*
@@ -99,6 +100,9 @@ class Core {
 
     private static <T> Try<T> valueFromJson(
         JSONObject jsonObject, Class<T> valueType, int recursionDepth) {
+      Try<T> a = parseObjectWithConstructor(jsonObject, valueType, recursionDepth);
+      Try<T> b = parseMutableObjectWithSetters(jsonObject, valueType, recursionDepth);
+      Try<T> c = parseObjectWithFields(jsonObject, valueType, recursionDepth);
       return parseObjectWithConstructor(jsonObject, valueType, recursionDepth)
           .orElse(parseMutableObjectWithSetters(jsonObject, valueType, recursionDepth))
           .orElse(parseObjectWithFields(jsonObject, valueType, recursionDepth));
