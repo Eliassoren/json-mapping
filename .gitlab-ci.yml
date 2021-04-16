@@ -80,7 +80,7 @@ deploy:
     - eval $(ssh-agent -s)
     - ssh-add <(echo "$GITLAB_DEPLOY_KEY")
     - mkdir -p ~/.ssh
-    - cat .m2/settings.xml
+    - cat ~/.m2/settings.xml
     - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
     - git checkout -B "$CI_RELEASE_BRANCH" # mvn release doesn't work on detached.
     - mvn $MAVEN_CLI_OPTS -Dresume=false release:prepare release:perform
