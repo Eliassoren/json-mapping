@@ -96,12 +96,10 @@
                 <createDependencyReducedPom>true</createDependencyReducedPom>
                 <artifactSet>
                   <includes>
-                    <include>com.fasterxml.jackson.*:*</include>
                   </includes>
                 </artifactSet>
                 <filters>
                   <filter>
-                    <artifact>com.fasterxml.jackson.*:*</artifact>
                     <excludes>
                       <exclude>**/module-info.class</exclude>
                     </excludes>
@@ -158,7 +156,7 @@
             </dependency>
           </dependencies>
           <configuration>
-            <onlyAnalyze>no.kantega.-</onlyAnalyze>
+            <onlyAnalyze>com.kantegasso.-</onlyAnalyze>
             <effort>Max</effort>
             <threshold>Low</threshold>
             <failOnError>true</failOnError>

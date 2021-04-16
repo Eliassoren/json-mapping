@@ -1,33 +1,5 @@
 <FindBugsFilter>
   <Match>
-    <!-- Warning for servlet getParameter. Such data must be sanitized in sensitive operations.
-         This is a warning only which bloats reports, and we are confident we handle this.-->
-    <Bug pattern="SERVLET_PARAMETER" />
-  </Match>
-  <Match>
-    <!-- Invalidated redirect: Unvalidated redirects occur when an application redirects a user
-     to a destination URL specified by a user supplied parameter that is not validated.
-     Such vulnerabilities can be used to facilitate phishing attacks.
-
-     Solution/Countermeasures:
-      Don't accept redirection destinations from users
-      Accept a destination key, and use it to look up the target (legal) destination
-      Accept only relative paths
-      White list URLs (if possible)
-      Validate that the beginning of the URL is part of a white list
-
-      We must be confident that we handle this issue.
-      -->
-    <Bug pattern="UNVALIDATED_REDIRECT" />
-  </Match>
-  <Match>
-    <!-- Warning: Request header can easily be altered by the client
-         Warning only, we must be confident we can handle this.
-         Also we have a certain trust in the client-->
-    <Bug pattern="SERVLET_HEADER" />
-  </Match>
-
-  <Match>
     <!-- Non-transient non-serializable instance field in serializable class
           Don't think this will ever be problematic. This complains in all classes.
           If we want this check turned on, we can disable for certain classes.
@@ -35,16 +7,6 @@
     <Bug pattern="SE_BAD_FIELD" />
   </Match>
 
-
-  <!-- Serialversion UID which is relevant for serialized classes. Turn off for all servlets -->
-  <Match>
-    <Class name="~.*?Action.*" />
-    <Bug pattern="SE_NO_SERIALVERSIONID" />
-  </Match>
- <Match>
-   <Class name="~.*?Servlet.*" />
-   <Bug pattern="SE_NO_SERIALVERSIONID" />
-  </Match>
 
   <Match>
     <!-- getGlobalIpBlockedlist() may expose internal
@@ -54,7 +16,6 @@
     <Bug pattern="EI_EXPOSE_REP" />
   </Match>
 
-
   <Match>
     <!-- String.toLowerCase(Locale.English) may be safer than default system.
      Relevant for internationalization.
@@ -63,10 +24,20 @@
   </Match>
 
   <Match>
-    <!-- Untrusted Hostname header
-The hostname header can be controlled by the client.
- As such, its value should not be used in any security critical decisions. -->
-    <Bug pattern="SERVLET_SERVER_NAME" />
+    <!-- try/catch of general ignored exception -->
+    <Bug pattern="REC_CATCH_EXCEPTION" />
+  </Match>
+
+  <Match>
+    <!-- try/catch of general deliberately ignored exception -->
+    <Bug pattern="DE_MIGHT_IGNORE" />
+  </Match>
+
+  <Match>
+    <!-- False positive -->
+    <Class name="Utils" />
+    <Method name="~.*?makeField.*" />
+    <Bug pattern="DP_DO_INSIDE_DO_PRIVILEGED" />
   </Match>
 
 </FindBugsFilter>

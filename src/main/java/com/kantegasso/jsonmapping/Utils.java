@@ -8,6 +8,8 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -36,32 +38,9 @@ class Utils {
         "%s%s", Character.toLowerCase(fieldName.charAt(0)), fieldName.substring(1));
   }
 
-  private static String accessor(Field field) {
-    Class<?> type = convertPrimitiveType(field.getType());
-    if (type.equals(Boolean.class)) {
-      return booleanAccessor(field.getName());
-    }
-    return getterAccessor(field.getName());
-  }
-
-  private static String booleanAccessor(String fieldName) {
-    return String.format(
-        "is%s%s", Character.toUpperCase(fieldName.charAt(0)), fieldName.substring(1));
-  }
-
   static boolean isMethodAccessor(Method method) {
     return Try.of(() -> method.getName().startsWith("get") || method.getName().startsWith("is"))
         .getOrElse(false);
-  }
-
-  private static String getterAccessor(String fieldName) {
-    return String.format(
-        "get%s%s", Character.toUpperCase(fieldName.charAt(0)), fieldName.substring(1));
-  }
-
-  private static String setterAccessor(String fieldName) {
-    return String.format(
-        "set%s%s", Character.toUpperCase(fieldName.charAt(0)), fieldName.substring(1));
   }
 
   static Class<?> convertPrimitiveType(Class<?> type) {
@@ -78,10 +57,6 @@ class Utils {
 
   static boolean isTypeEquals(Class<?> type1, Class<?> type2) {
     return convertPrimitiveType(type1).equals(convertPrimitiveType(type2));
-  }
-
-  private static boolean isJavaLangObject(Class<?> type) {
-    return type.getPackage().getName().startsWith("java.lang");
   }
 
   static boolean isBasicJavaObject(Object value) {
@@ -117,12 +92,31 @@ class Utils {
         .getOrElse(field.getName());
   }
 
-  static void makeFieldAccessibleAndModifiable(Field field)
-      throws NoSuchFieldException, IllegalAccessException {
-    field.setAccessible(true);
-    Field modifiersField = Field.class.getDeclaredField("modifiers");
-    modifiersField.setAccessible(true);
-    modifiersField.setInt(field, field.getModifiers() & ~Modifier.FINAL);
+  static void makeFieldModifiable(Field field) {
+    AccessController.doPrivileged(
+        (PrivilegedAction<Object>)
+            () -> {
+              try {
+                Field modifiersField = Field.class.getDeclaredField("modifiers");
+                makeFieldAccessible(field);
+                makeFieldAccessible(modifiersField);
+                modifiersField.setInt(field, field.getModifiers() & ~Modifier.FINAL);
+              } catch (IllegalAccessException | NoSuchFieldException ignored) {
+              }
+              return null;
+            });
+  }
+
+  static void makeFieldAccessible(Field field) {
+    AccessController.doPrivileged(
+        (PrivilegedAction<Object>)
+            () -> {
+              try {
+                field.setAccessible(true);
+              } catch (SecurityException ignored) {
+              }
+              return null;
+            });
   }
 
   static Map<String, String> convertToStringValues(Map<String, ?> map) {
