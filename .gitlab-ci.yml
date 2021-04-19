@@ -13,7 +13,6 @@ default:
 
 stages:
   - build
-  - security
   - test
   - deploy
 
@@ -36,7 +35,7 @@ build:
       - $CI_MERGE_REQUEST_TITLE =~ /^WIP:.*/
 
 security:
-  stage: security
+  stage: test
   dependencies:
     - build
   script:
