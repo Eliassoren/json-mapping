@@ -1,5 +1,6 @@
 package com.kantegasso.jsonmapping;
 
+import com.kantegasso.jsonmapping.stub.ApiTokenObject;
 import com.kantegasso.jsonmapping.stub.ApiTokenObjectStub;
 import com.kantegasso.jsonmapping.stub.ApplicationSecretStub;
 import com.kantegasso.jsonmapping.stub.Repository;
@@ -127,6 +128,21 @@ public class JsonMappingTest {
     JSONObject json = JsonMapping.Write.objectAsJson(expected).getOrNull();
     ApiTokenObjectStub actual = new ApiTokenObjectStub();
     JsonMapping.Read.populateInstanceFromJson(json, actual);
+    Assert.assertEquals(expected, actual);
+  }
+
+  @Test
+  public void testPopulateApiTokenFromJsonInterface() {
+    ApiTokenObject expected = new ApiTokenObjectStub();
+    expected.setAlias("alias");
+    expected.setCreatedAt(3);
+    expected.setHashed("hashed");
+    expected.setSalt("salt");
+    expected.setUserKey("userkey");
+    expected.setValidFor(1);
+    JSONObject json = JsonMapping.Write.objectAsJson(expected, ApiTokenObject.class).getOrNull();
+    ApiTokenObject actual = new ApiTokenObjectStub();
+    JsonMapping.Read.populateInstanceFromJson(json, actual, ApiTokenObject.class);
     Assert.assertEquals(expected, actual);
   }
 

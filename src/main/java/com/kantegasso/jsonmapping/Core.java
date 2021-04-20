@@ -16,12 +16,16 @@ class Core {
 
   static class Write {
 
-    static <T> Try<JSONObject> objectAsJson(T object) {
-      return objectAsJson(object, 0);
+    static <T> Try<JSONObject> objectAsJson(T object, Class<?> type) {
+      return objectAsJson(object, type, 0);
     }
 
-    static <T> Try<JSONObject> objectAsJson(T object, int recursionDepth) {
-      return writeJsonFromAccessors(object, recursionDepth)
+    static <T> Try<JSONObject> objectAsJson(T object) {
+      return objectAsJson(object, object.getClass(), 0);
+    }
+
+    static <T> Try<JSONObject> objectAsJson(T object, Class<?> type, int recursionDepth) {
+      return writeJsonFromAccessors(object, type, recursionDepth)
           .orElse(writeJsonFromFields(object, recursionDepth));
     }
 
@@ -47,7 +51,7 @@ class Core {
                                 if (Utils.isBasicJavaObject(value)) {
                                   return value;
                                 } else {
-                                  return objectAsJson(value, recursionDepth + 1)
+                                  return objectAsJson(value, value.getClass(), recursionDepth + 1)
                                       .getOrElseThrow(
                                           () ->
                                               new RuntimeException("Failed to write json nested"));
@@ -63,8 +67,9 @@ class Core {
     /*
      * Note that @JsonProperty annotations are needed on accessors.
      */
-    private static <T> Try<JSONObject> writeJsonFromAccessors(T object, int recursionDepth) {
-      return Try.of(() -> object.getClass())
+    private static <T> Try<JSONObject> writeJsonFromAccessors(
+        T object, Class<?> type, int recursionDepth) {
+      return Try.of(() -> type)
           .filterTry(_valueType -> recursionDepth < Utils.MAX_RECURSION_DEPTH)
           .mapTry(
               valueType -> {
@@ -81,7 +86,8 @@ class Core {
                                     if (Utils.isBasicJavaObject(value)) {
                                       return value;
                                     } else {
-                                      return objectAsJson(value, recursionDepth + 1);
+                                      return objectAsJson(
+                                          value, value.getClass(), recursionDepth + 1);
                                     }
                                   })
                               .mapTry(value -> jsonObject.put(fieldName, value));
@@ -105,15 +111,15 @@ class Core {
           .orElse(parseObjectWithFields(jsonObject, valueType, recursionDepth));
     }
 
-    static <T> Try<Void> populateInstanceFromJson(JSONObject jsonObject, T object) {
-      return populateInstanceFromJson(jsonObject, object, 0);
+    static <T> Try<Void> populateInstanceFromJson(JSONObject jsonObject, T object, Class<?> type) {
+      return populateInstanceFromJson(jsonObject, object, type, 0);
     }
 
     private static <T> Try<Void> populateInstanceFromJson(
-        JSONObject jsonObject, T object, int recursionDepth) {
+        JSONObject jsonObject, T object, Class<?> type, int recursionDepth) {
       return Try.of(
               () ->
-                  List.of(object.getClass().getDeclaredMethods())
+                  List.of(type.getDeclaredMethods())
                       .filter(method -> method.getName().startsWith("set"))
                       .filter(method -> method.getParameterCount() == 1)
                       .filter(method -> method.getReturnType().equals(Void.TYPE))
@@ -136,8 +142,7 @@ class Core {
               valueFromJson ->
                   Try.run(
                           () -> {
-                            Class<?> setterType =
-                                Utils.convertPrimitiveType(setter.getParameterTypes()[0]);
+                            Class<?> setterType = setter.getParameterTypes()[0];
                             Object parsedValue =
                                 parseValue(setterType, valueFromJson, recursionDepth);
                             setter.invoke(object, parsedValue);
@@ -146,8 +151,6 @@ class Core {
                           Try.run(
                               () -> {
                                 if (valueFromJson == null) {
-                                  Class<?> setterType =
-                                      Utils.convertPrimitiveType(setter.getParameterTypes()[0]);
                                   setter.invoke(object, (Object) null);
                                 }
                               })));
@@ -158,7 +161,9 @@ class Core {
       return Try.of(valueType::newInstance)
           .filterTry(object -> recursionDepth < Utils.MAX_RECURSION_DEPTH)
           .filterTry(
-              object -> populateInstanceFromJson(jsonObject, object, recursionDepth).isSuccess());
+              object ->
+                  populateInstanceFromJson(jsonObject, object, valueType, recursionDepth)
+                      .isSuccess());
     }
 
     private static <T> Try<T> parseObjectWithConstructor(

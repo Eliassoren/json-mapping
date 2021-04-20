@@ -3,7 +3,7 @@ package com.kantegasso.jsonmapping.stub;
 import java.beans.PropertyChangeListener;
 import java.util.Objects;
 
-public class ApiTokenObjectStub {
+public class ApiTokenObjectStub implements ApiTokenObject {
   private int ID;
   private String alias;
   private long createdAt;
@@ -16,50 +16,62 @@ public class ApiTokenObjectStub {
     this.ID = 3;
   }
 
+  @Override
   public String getAlias() {
     return alias;
   }
 
+  @Override
   public void setAlias(String alias) {
     this.alias = alias;
   }
 
+  @Override
   public long getValidFor() {
     return validFor;
   }
 
+  @Override
   public void setValidFor(long validFor) {
     this.validFor = validFor;
   }
 
+  @Override
   public long getCreatedAt() {
     return createdAt;
   }
 
+  @Override
   public void setCreatedAt(long createdAt) {
     this.createdAt = createdAt;
   }
 
+  @Override
   public String getHashed() {
     return hashed;
   }
 
+  @Override
   public void setHashed(String hashed) {
     this.hashed = hashed;
   }
 
+  @Override
   public String getSalt() {
     return salt;
   }
 
+  @Override
   public void setSalt(String salt) {
     this.salt = salt;
   }
 
+  @Override
   public String getUserKey() {
     return userKey;
   }
 
+  @Override
   public void setUserKey(String userKey) {
     this.userKey = userKey;
   }

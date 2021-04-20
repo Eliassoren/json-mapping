@@ -29,6 +29,10 @@ public class JsonMapping {
       return Core.Write.objectAsJson(object);
     }
 
+    public static <T> Try<JSONObject> objectAsJson(T object, Class<?> declaredType) {
+      return Core.Write.objectAsJson(object);
+    }
+
     public static Try<JSONObject> stringAsJson(String value) {
       return Try.of(() -> new JSONObject(value));
     }
@@ -50,7 +54,12 @@ public class JsonMapping {
     }
 
     public static <T> Try<Void> populateInstanceFromJson(JSONObject jsonObject, T object) {
-      return Core.Read.populateInstanceFromJson(jsonObject, object);
+      return Core.Read.populateInstanceFromJson(jsonObject, object, object.getClass());
+    }
+
+    public static <T> Try<Void> populateInstanceFromJson(
+        JSONObject jsonObject, T object, Class<?> type) {
+      return Core.Read.populateInstanceFromJson(jsonObject, object, object.getClass());
     }
 
     public static Try<Map<String, ?>> mapFromJson(String jsonValue) {
