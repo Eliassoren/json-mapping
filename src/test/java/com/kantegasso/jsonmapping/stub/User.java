@@ -1,6 +1,7 @@
 package com.kantegasso.jsonmapping.stub;
 
 import com.kantegasso.jsonmapping.JsonMapping.JsonProperty;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -16,6 +17,9 @@ public class User {
 
   @JsonProperty("groups")
   private List<String> groups;
+
+  @JsonProperty("contacts")
+  List<User> contacts = new ArrayList<>();
 
   User() {
     this.ID = -1;
@@ -52,6 +56,14 @@ public class User {
   public void setGroups(List<String> groups) {
     this.groups = groups;
   }
+
+  public List<User> getContacts() {
+    return contacts;
+  };
+
+  public void setContacts(List<User> contacts) {
+    this.contacts = contacts;
+  };
 
   @Override
   public boolean equals(Object o) {
