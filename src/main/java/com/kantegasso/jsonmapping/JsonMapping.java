@@ -24,13 +24,17 @@ public class JsonMapping {
     String value() default "";
   }
 
+  @Retention(RetentionPolicy.RUNTIME)
+  @Target({ElementType.TYPE})
+  public @interface JsonMapper {}
+
   public static class Write {
     public static <T> Try<JSONObject> objectAsJson(T object) {
       return Core.Write.objectAsJson(object);
     }
 
     public static <T> Try<JSONObject> objectAsJson(T object, Class<?> declaredType) {
-      return Core.Write.objectAsJson(object);
+      return Core.Write.objectAsJson(object, declaredType);
     }
 
     public static Try<JSONObject> stringAsJson(String value) {
