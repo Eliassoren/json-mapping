@@ -80,7 +80,7 @@ class Core {
                     .forEach(
                         accessor -> {
                           String fieldName = Utils.parseFieldName(accessor);
-                          Try.of(() -> accessor.invoke(object, valueType))
+                          Try.of(() -> accessor.invoke(object, (Object[]) null))
                               .mapTry(
                                   value -> {
                                     if (Utils.isBasicJavaObject(value)) {
