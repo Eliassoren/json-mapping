@@ -138,6 +138,16 @@ public class JsonMappingTest {
     user.setEmail("jondoe@example.com");
     List<String> groups = Arrays.asList("group 1", "group 2");
     user.setGroups(groups);
+    User user2 = repository.createUser(); // ID = 8777
+    user2.setUsername("jondoe2");
+    user2.setEmail("jondoe2@example.com");
+    user2.setGroups(Arrays.asList("group 1", "group 2"));
+    User user3 = repository.createUser(); // ID = 8777
+    user3.setUsername("jondoe3");
+    user3.setEmail("jondoe2@example.com");
+    user3.setGroups(Arrays.asList("group 1", "group 2"));
+    user.setContacts(Arrays.asList(user2, user3));
+    user3.setContacts(Arrays.asList(user, user2));
     JSONObject json = JsonMapping.Write.objectAsJson(user).getOrNull();
     /* json:
         {

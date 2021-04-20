@@ -148,7 +148,7 @@ class Core {
                                 if (valueFromJson == null) {
                                   Class<?> setterType =
                                       Utils.convertPrimitiveType(setter.getParameterTypes()[0]);
-                                  setter.invoke(setterType, (Object) null);
+                                  setter.invoke(object, (Object) null);
                                 }
                               })));
     }
