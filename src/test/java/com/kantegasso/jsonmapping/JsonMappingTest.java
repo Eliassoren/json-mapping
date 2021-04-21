@@ -2,6 +2,7 @@ package com.kantegasso.jsonmapping;
 
 import com.kantegasso.jsonmapping.stub.ApiTokenObject;
 import com.kantegasso.jsonmapping.stub.ApiTokenObjectStub;
+import com.kantegasso.jsonmapping.stub.ApiTokenObjectStubWithoutAnnotation;
 import com.kantegasso.jsonmapping.stub.ApplicationSecretStub;
 import com.kantegasso.jsonmapping.stub.Repository;
 import com.kantegasso.jsonmapping.stub.ScimTenantConfigStub;
@@ -111,9 +112,25 @@ public class JsonMappingTest {
     expected.setUserKey("userkey");
     expected.setValidFor(1);
     String json = JsonMapping.Write.objectAsJson(expected).map(JSONObject::toString).getOrElse("");
-    ApiTokenObjectStub maybeActual =
+    ApiTokenObject maybeActual =
         JsonMapping.Read.valueFromJson(json, ApiTokenObjectStub.class).getOrNull();
     Assert.assertEquals(expected, maybeActual);
+  }
+
+  @Test
+  public void testGenericReadApiTokenFromJsonWithoutAnnotation() {
+    ApiTokenObjectStubWithoutAnnotation expected = new ApiTokenObjectStubWithoutAnnotation();
+    expected.setAlias("alias");
+    expected.setCreatedAt(1);
+    expected.setHashed("hashed");
+    expected.setSalt("salt");
+    expected.setUserKey("userkey");
+    expected.setValidFor(1);
+    String json = JsonMapping.Write.objectAsJson(expected).map(JSONObject::toString).getOrElse("");
+    ApiTokenObjectStubWithoutAnnotation maybeActual =
+        JsonMapping.Read.valueFromJson(json, ApiTokenObjectStubWithoutAnnotation.class).getOrNull();
+    Assert.assertNull(maybeActual);
+    Assert.assertEquals("", json);
   }
 
   @Test
@@ -125,9 +142,9 @@ public class JsonMappingTest {
     expected.setSalt("salt");
     expected.setUserKey("userkey");
     expected.setValidFor(1);
-    JSONObject json = JsonMapping.Write.objectAsJson(expected).getOrNull();
+    JSONObject json = JsonMapping.Write.objectAsJson(expected, ApiTokenObject.class).getOrNull();
     ApiTokenObjectStub actual = new ApiTokenObjectStub();
-    JsonMapping.Read.populateInstanceFromJson(json, actual);
+    JsonMapping.Read.populateInstanceFromJson(json, actual, ApiTokenObject.class);
     Assert.assertEquals(expected, actual);
   }
 

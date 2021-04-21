@@ -1,7 +1,9 @@
 package com.kantegasso.jsonmapping.stub;
 
+import com.kantegasso.jsonmapping.JsonMapping.JsonMapper;
 import com.kantegasso.jsonmapping.JsonMapping.JsonProperty;
 
+@JsonMapper
 public interface ApiTokenObject {
   @JsonProperty("alias")
   String getAlias();

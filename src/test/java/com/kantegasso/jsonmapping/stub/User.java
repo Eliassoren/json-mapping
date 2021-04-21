@@ -1,10 +1,12 @@
 package com.kantegasso.jsonmapping.stub;
 
+import com.kantegasso.jsonmapping.JsonMapping.JsonMapper;
 import com.kantegasso.jsonmapping.JsonMapping.JsonProperty;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+@JsonMapper
 public class User {
   @JsonProperty("ID")
   private final int ID;

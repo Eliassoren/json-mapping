@@ -1,5 +1,6 @@
 package com.kantegasso.jsonmapping;
 
+import com.kantegasso.jsonmapping.JsonMapping.JsonMapper;
 import com.kantegasso.jsonmapping.JsonMapping.JsonProperty;
 import io.vavr.collection.List;
 import io.vavr.control.Option;
@@ -16,16 +17,16 @@ class Core {
 
   static class Write {
 
-    static <T> Try<JSONObject> objectAsJson(T object, Class<?> type) {
-      return objectAsJson(object, type, 0);
+    static <T> Try<JSONObject> objectAsJson(T object, Class<?> valueType) {
+      return objectAsJson(object, valueType, 0);
     }
 
     static <T> Try<JSONObject> objectAsJson(T object) {
       return objectAsJson(object, object.getClass(), 0);
     }
 
-    static <T> Try<JSONObject> objectAsJson(T object, Class<?> type, int recursionDepth) {
-      return writeJsonFromAccessors(object, type, recursionDepth)
+    static <T> Try<JSONObject> objectAsJson(T object, Class<?> valueType, int recursionDepth) {
+      return writeJsonFromAccessors(object, valueType, recursionDepth)
           .orElse(writeJsonFromFields(object, recursionDepth));
     }
 
@@ -35,6 +36,7 @@ class Core {
           .filterTry(
               fields -> !fields.isEmpty(), () -> new RuntimeException("Instance has no fields"))
           .filterTry(fields -> recursionDepth < Utils.MAX_RECURSION_DEPTH)
+          .filterTry(_fields -> object.getClass().getDeclaredAnnotation(JsonMapper.class) != null)
           .mapTry(
               fields -> {
                 JSONObject jsonObject = new JSONObject();
@@ -67,13 +69,15 @@ class Core {
     /*
      * Note that @JsonProperty annotations are needed on accessors.
      */
-    static <T> Try<JSONObject> writeJsonFromAccessors(T object, Class<?> type, int recursionDepth) {
-      return Try.of(() -> type)
-          .filterTry(_valueType -> recursionDepth < Utils.MAX_RECURSION_DEPTH)
+    static <T> Try<JSONObject> writeJsonFromAccessors(
+        T object, Class<?> valueType, int recursionDepth) {
+      return Try.of(() -> valueType)
+          .filterTry(_type -> recursionDepth < Utils.MAX_RECURSION_DEPTH)
+          .filterTry(type -> valueType.getDeclaredAnnotation(JsonMapper.class) != null)
           .mapTry(
-              valueType -> {
+              type -> {
                 JSONObject jsonObject = new JSONObject();
-                List.of(valueType.getDeclaredMethods())
+                List.of(type.getDeclaredMethods())
                     .filter(Utils::isMethodAccessor)
                     .filter(accessor -> accessor.getAnnotation(JsonProperty.class) != null)
                     .forEach(
@@ -100,7 +104,9 @@ class Core {
   static class Read {
 
     static <T> Try<T> valueFromJson(JSONObject jsonObject, Class<T> valueType) {
-      return valueFromJson(jsonObject, valueType, 0);
+      return Try.of(() -> valueType)
+          .filterTry(type -> type.getDeclaredAnnotation(JsonMapper.class) != null)
+          .flatMapTry(_type -> valueFromJson(jsonObject, valueType, 0));
     }
 
     private static <T> Try<T> valueFromJson(
@@ -110,14 +116,17 @@ class Core {
           .orElse(parseObjectWithFields(jsonObject, valueType, recursionDepth));
     }
 
-    static <T> Try<Void> populateInstanceFromJson(JSONObject jsonObject, T object, Class<?> type) {
-      return populateInstanceFromJson(jsonObject, object, type, 0);
+    static <T> Try<Void> populateInstanceFromJson(
+        JSONObject jsonObject, T object, Class<?> valueType) {
+      return populateInstanceFromJson(jsonObject, object, valueType, 0);
     }
 
     private static <T> Try<Void> populateInstanceFromJson(
-        JSONObject jsonObject, T object, Class<?> type, int recursionDepth) {
-      return Try.of(
-              () ->
+        JSONObject jsonObject, T object, Class<?> valueType, int recursionDepth) {
+      return Try.of(() -> valueType)
+          .filterTry(type -> type.getDeclaredAnnotation(JsonMapper.class) != null)
+          .mapTry(
+              type ->
                   List.of(type.getDeclaredMethods())
                       .filter(method -> method.getName().startsWith("set"))
                       .filter(method -> method.getParameterCount() == 1)
