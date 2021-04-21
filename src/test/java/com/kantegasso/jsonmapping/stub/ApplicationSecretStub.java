@@ -1,5 +1,6 @@
 package com.kantegasso.jsonmapping.stub;
 
+import com.kantegasso.jsonmapping.JsonMapping.JsonMapper;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
@@ -10,6 +11,7 @@ import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 
+@JsonMapper
 public class ApplicationSecretStub {
   private final String salt;
   private final String hashed;

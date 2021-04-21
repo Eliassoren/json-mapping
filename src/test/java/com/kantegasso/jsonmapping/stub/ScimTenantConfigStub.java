@@ -1,9 +1,11 @@
 package com.kantegasso.jsonmapping.stub;
 
+import com.kantegasso.jsonmapping.JsonMapping.JsonMapper;
 import com.kantegasso.jsonmapping.JsonMapping.JsonProperty;
 import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
 
+@JsonMapper
 public class ScimTenantConfigStub {
 
   /** Uniquely identifies the tenant and links the config and Internal directory */

@@ -63,7 +63,7 @@ public class JsonMapping {
 
     public static <T> Try<Void> populateInstanceFromJson(
         JSONObject jsonObject, T object, Class<?> type) {
-      return Core.Read.populateInstanceFromJson(jsonObject, object, object.getClass());
+      return Core.Read.populateInstanceFromJson(jsonObject, object, type);
     }
 
     public static Try<Map<String, ?>> mapFromJson(String jsonValue) {

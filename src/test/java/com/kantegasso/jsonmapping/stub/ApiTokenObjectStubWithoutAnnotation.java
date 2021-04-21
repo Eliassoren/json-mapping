@@ -1,11 +1,9 @@
 package com.kantegasso.jsonmapping.stub;
 
-import com.kantegasso.jsonmapping.JsonMapping.JsonMapper;
 import java.beans.PropertyChangeListener;
 import java.util.Objects;
 
-@JsonMapper
-public class ApiTokenObjectStub implements ApiTokenObject {
+public class ApiTokenObjectStubWithoutAnnotation implements ApiTokenObject {
   private int ID;
   private String alias;
   private long createdAt;
@@ -14,7 +12,7 @@ public class ApiTokenObjectStub implements ApiTokenObject {
   private String userKey;
   private long validFor;
 
-  public ApiTokenObjectStub() {
+  public ApiTokenObjectStubWithoutAnnotation() {
     this.ID = 3;
   }
 
@@ -97,7 +95,7 @@ public class ApiTokenObjectStub implements ApiTokenObject {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    ApiTokenObjectStub that = (ApiTokenObjectStub) o;
+    ApiTokenObjectStubWithoutAnnotation that = (ApiTokenObjectStubWithoutAnnotation) o;
     return ID == that.ID
         && createdAt == that.createdAt
         && validFor == that.validFor
