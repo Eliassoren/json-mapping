@@ -2,6 +2,7 @@ package com.kantegasso.jsonmapping;
 
 import com.kantegasso.jsonmapping.JsonMapping.JsonMapper;
 import com.kantegasso.jsonmapping.JsonMapping.JsonProperty;
+import com.kantegasso.jsonmapping.error.JsonMappingException;
 import io.vavr.collection.List;
 import io.vavr.control.Option;
 import io.vavr.control.Try;
@@ -34,9 +35,17 @@ class Core {
       return Try.of(() -> object.getClass().getDeclaredFields())
           .mapTry(List::of)
           .filterTry(
-              fields -> !fields.isEmpty(), () -> new RuntimeException("Instance has no fields"))
+              fields -> !fields.isEmpty(),
+              () -> new JsonMappingException("JSON-0ZNRDWGTO7", "Instance has no fields"))
           .filterTry(fields -> recursionDepth < Utils.MAX_RECURSION_DEPTH)
-          .filterTry(_fields -> object.getClass().getDeclaredAnnotation(JsonMapper.class) != null)
+          .filterTry(
+              _fields -> object.getClass().getDeclaredAnnotation(JsonMapper.class) != null,
+              () ->
+                  new JsonMappingException(
+                      "JSON-LK5AWB99NQ",
+                      "The type '"
+                          + Try.of(() -> object.getClass().getName()).getOrElse("")
+                          + "' does not have the required annotation @JsonMapper."))
           .mapTry(
               fields -> {
                 JSONObject jsonObject = new JSONObject();
@@ -73,7 +82,14 @@ class Core {
         T object, Class<?> valueType, int recursionDepth) {
       return Try.of(() -> valueType)
           .filterTry(_type -> recursionDepth < Utils.MAX_RECURSION_DEPTH)
-          .filterTry(type -> valueType.getDeclaredAnnotation(JsonMapper.class) != null)
+          .filterTry(
+              type -> valueType.getDeclaredAnnotation(JsonMapper.class) != null,
+              () ->
+                  new JsonMappingException(
+                      "JSON-5COOZK00Z8",
+                      "The type '"
+                          + Try.of(() -> object.getClass().getName()).getOrElse("")
+                          + "' does not have the required annotation @JsonMapper."))
           .mapTry(
               type -> {
                 JSONObject jsonObject = new JSONObject();
@@ -105,7 +121,14 @@ class Core {
 
     static <T> Try<T> valueFromJson(JSONObject jsonObject, Class<T> valueType) {
       return Try.of(() -> valueType)
-          .filterTry(type -> type.getDeclaredAnnotation(JsonMapper.class) != null)
+          .filterTry(
+              type -> type.getDeclaredAnnotation(JsonMapper.class) != null,
+              () ->
+                  new JsonMappingException(
+                      "JSON-KFSVGVSYHL",
+                      "The type '"
+                          + Try.of(valueType::getName).getOrElse("")
+                          + "' does not have the required annotation @JsonMapper."))
           .flatMapTry(_type -> valueFromJson(jsonObject, valueType, 0));
     }
 
@@ -124,7 +147,14 @@ class Core {
     private static <T> Try<Void> populateInstanceFromJson(
         JSONObject jsonObject, T object, Class<?> valueType, int recursionDepth) {
       return Try.of(() -> valueType)
-          .filterTry(type -> type.getDeclaredAnnotation(JsonMapper.class) != null)
+          .filterTry(
+              type -> type.getDeclaredAnnotation(JsonMapper.class) != null,
+              () ->
+                  new JsonMappingException(
+                      "JSON-Z4R10OE60N",
+                      "The type '"
+                          + Try.of(valueType::getName).getOrElse("")
+                          + "' does not have the required annotation @JsonMapper."))
           .mapTry(
               type ->
                   List.of(type.getDeclaredMethods())
@@ -168,10 +198,15 @@ class Core {
         JSONObject jsonObject, Class<T> valueType, int recursionDepth) {
       return Try.of(valueType::newInstance)
           .filterTry(object -> recursionDepth < Utils.MAX_RECURSION_DEPTH)
-          .filterTry(
-              object ->
-                  populateInstanceFromJson(jsonObject, object, valueType, recursionDepth)
-                      .isSuccess());
+          .mapTry(
+              object -> {
+                populateInstanceFromJson(jsonObject, object, valueType, recursionDepth)
+                    .getOrElseThrow(
+                        throwable ->
+                            new JsonMappingException(
+                                "JSON-8C8T0SOFH8", "Could not parse mutable object. ", throwable));
+                return object;
+              });
     }
 
     private static <T> Try<T> parseObjectWithConstructor(
@@ -214,8 +249,9 @@ class Core {
                         .filter(value -> !value.isEmpty())
                         .getOrElseThrow(
                             () ->
-                                new RuntimeException(
-                                    "JsonProperty annotation in constructor needed to construct immutable Java object from json."));
+                                new JsonMappingException(
+                                    "JSON-CBVT9U637O",
+                                    "JsonProperty annotation in constructor required to construct immutable Java object from json."));
                 Object parameterValue =
                     List.ofAll(jsonMap.keySet())
                         .find(
@@ -252,7 +288,10 @@ class Core {
                 } else if (value instanceof HashMap) {
                   return JsonMapping.Write.mapAsJson((HashMap<?, ?>) value)
                       .flatMapTry(json -> valueFromJson(json, parameterType, recursionDepth + 1))
-                      .getOrElseThrow(() -> new RuntimeException("Could not parse nested JSON"));
+                      .getOrElseThrow(
+                          () ->
+                              new JsonMappingException(
+                                  "JSON-A62Z4DGS1R", "Could not parse nested JSON"));
                 }
                 return value;
               })
