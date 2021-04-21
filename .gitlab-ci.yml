@@ -14,7 +14,7 @@ default:
 stages:
   - build
   - test
-  - deploy
+  - release
 
 cache:
   key: ${CI_COMMIT_REF_SLUG}
@@ -69,8 +69,8 @@ test:
     variables:
       - $CI_MERGE_REQUEST_TITLE =~ /^WIP:.*/
 
-deploy:
-  stage: deploy
+release:
+  stage: release
   dependencies:
     - test
   script:
@@ -84,6 +84,3 @@ deploy:
     - mvn $MAVEN_CLI_OPTS -Dresume=false release:prepare release:perform
   only:
     - master
-
-
-

@@ -78,83 +78,88 @@ Add to your pom:
 The below example shows usage of the Write and Read component using a simple Java object. The whole API surface exposes objects wrapped in the VAVR Try monad. This library will not throw any excepctions, but wraps them in the result type.
 
 ```java
-    User user = repository.createUser(); // ID = 8777
-    user.setUsername("jondoe");
-    user.setEmail("jondoe@example.com");
-    List<String> groups = Arrays.asList(
-      "group 1",
-      "group 2"
-    );
-    user.setGroups(groups);
-    Try<JSONObject> maybeJson = JsonMapping.Write.objectAsJson(user);
-    /* json:
-        {
-            "ID": 8777,
-            "username": "jondoe",
-            "email": "jondoe@example.com",
-            "groups": ["group 1", "group 2"]
-        }
-    */
-    Try<User> deserialized = maybeJson
-        .flatMapTry(json -> JsonMapping.Read.valueFromJson(json, User.class));
-    assertEquals(user, deserialized.getOrNull()); // true
+User user = repository.createUser(); // ID = 8777
+user.setUsername("jondoe");
+user.setEmail("jondoe@example.com");
+List<String> groups = Arrays.asList(
+  "group 1",
+  "group 2"
+);
+user.setGroups(groups);
+Try<JSONObject> maybeJson = JsonMapping.Write.objectAsJson(user);
+/* json:
+    {
+        "ID": 8777,
+        "username": "jondoe",
+        "email": "jondoe@example.com",
+        "groups": ["group 1", "group 2"]
+    }
+*/
+Try<User> deserialized = maybeJson
+    .flatMapTry(json -> JsonMapping.Read.valueFromJson(json, User.class));
+assertEquals(user, deserialized.getOrNull()); // true
 ```
 
-Data objects can (and should) be annotated with the @JsonProperty annotation to ensure consistency in case of renaming variables. You may annotate fields (like shown in User.java), but could also annotate parameters in a constructor or getters (and setters).
+@JsonMapper annotation is required on each type or interface that you want to map to / from json.
+This is to ensure that only known objects are deserialized, and reduce risk of unknown user-controlled objects causing RCE.
+Data objects can (and should) also be annotated with the @JsonProperty annotation to ensure consistency in case of renaming variables. 
+You may annotate fields (like shown in User.java), but could also annotate parameters in a constructor or getters (and setters).
 
 ```java
+@JsonMapper
 public class User {
-    @JsonProperty("ID")
-    private final int ID;
 
-    @JsonProperty("username")
-    private String username;
+  @JsonProperty("ID")
+  private final int ID;
 
-    @JsonProperty("email")
-    private String email;
+  @JsonProperty("username")
+  private String username;
 
-    @JsonProperty("groups")
-    private List<String> groups;
+  @JsonProperty("email")
+  private String email;
 
-    private User() { // empty constructor needed to parse object.
-        this.ID = -1;
-    }
+  @JsonProperty("groups")
+  private List<String> groups;
 
-    User(int ID) {
-        this.ID = ID;
-    }
+  private User() { // empty constructor needed to parse object.
+    this.ID = -1;
+  }
 
-    public int getID() {
-        return ID;
-    }
+  User(int ID) {
+    this.ID = ID;
+  }
 
-    public String getUsername() {
-        return username;
-    }
+  public int getID() {
+    return ID;
+  }
 
-    public void setUsername(String username) {
-        this.username = username;
-    }
+  public String getUsername() {
+    return username;
+  }
 
-    public String getEmail() {
-        return email;
-    }
+  public void setUsername(String username) {
+    this.username = username;
+  }
 
-    public void setEmail(String email) {
-        this.email = email;
-    }
+  public String getEmail() {
+    return email;
+  }
 
-    public List<String> getGroups() {
-        return groups;
-    }
+  public void setEmail(String email) {
+    this.email = email;
+  }
 
-    public void setGroups(List<String> groups) {
-        this.groups = groups;
-    }
+  public List<String> getGroups() {
+    return groups;
+  }
 
-    public void addGroup(String group) {
-        groups.add(group);
-    }
+  public void setGroups(List<String> groups) {
+    this.groups = groups;
+  }
+
+  public void addGroup(String group) {
+    groups.add(group);
+  }
 }
 ```
 

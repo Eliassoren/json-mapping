@@ -118,6 +118,20 @@ public class JsonMappingTest {
   }
 
   @Test
+  public void testGenericReadApiTokenFromJsonWithoutInstanceFails() {
+    ApiTokenObject expected = new ApiTokenObjectStub();
+    expected.setAlias("alias");
+    expected.setCreatedAt(1);
+    expected.setHashed("hashed");
+    expected.setSalt("salt");
+    expected.setUserKey("userkey");
+    expected.setValidFor(1);
+    String json = JsonMapping.Write.objectAsJson(expected).map(JSONObject::toString).getOrElse("");
+    Try<ApiTokenObject> maybeActual = JsonMapping.Read.valueFromJson(json, ApiTokenObject.class);
+    Assert.assertTrue(maybeActual.isFailure()); // Fail because interface does not have constructor
+  }
+
+  @Test
   public void testGenericReadApiTokenFromJsonWithoutAnnotation() {
     ApiTokenObjectStubWithoutAnnotation expected = new ApiTokenObjectStubWithoutAnnotation();
     expected.setAlias("alias");
@@ -126,11 +140,12 @@ public class JsonMappingTest {
     expected.setSalt("salt");
     expected.setUserKey("userkey");
     expected.setValidFor(1);
-    String json = JsonMapping.Write.objectAsJson(expected).map(JSONObject::toString).getOrElse("");
-    ApiTokenObjectStubWithoutAnnotation maybeActual =
-        JsonMapping.Read.valueFromJson(json, ApiTokenObjectStubWithoutAnnotation.class).getOrNull();
-    Assert.assertNull(maybeActual);
-    Assert.assertEquals("", json);
+    Try<String> maybeJson = JsonMapping.Write.objectAsJson(expected).map(JSONObject::toString);
+    Try<ApiTokenObjectStubWithoutAnnotation> maybeActual =
+        JsonMapping.Read.valueFromJson(
+            maybeJson.getOrElse(""), ApiTokenObjectStubWithoutAnnotation.class);
+    Assert.assertNull(maybeActual.getOrNull());
+    Assert.assertEquals("", maybeJson.getOrElse(""));
   }
 
   @Test
