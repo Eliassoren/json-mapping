@@ -29,7 +29,7 @@ class Core {
           .orElse(writeJsonFromFields(object, recursionDepth));
     }
 
-    private static <T> Try<JSONObject> writeJsonFromFields(T object, int recursionDepth) {
+    static <T> Try<JSONObject> writeJsonFromFields(T object, int recursionDepth) {
       return Try.of(() -> object.getClass().getDeclaredFields())
           .mapTry(List::of)
           .filterTry(
@@ -67,8 +67,7 @@ class Core {
     /*
      * Note that @JsonProperty annotations are needed on accessors.
      */
-    private static <T> Try<JSONObject> writeJsonFromAccessors(
-        T object, Class<?> type, int recursionDepth) {
+    static <T> Try<JSONObject> writeJsonFromAccessors(T object, Class<?> type, int recursionDepth) {
       return Try.of(() -> type)
           .filterTry(_valueType -> recursionDepth < Utils.MAX_RECURSION_DEPTH)
           .mapTry(

@@ -147,6 +147,22 @@ public class JsonMappingTest {
   }
 
   @Test
+  public void testPopulateApiTokenFromJsonInterfaceAccessors() {
+    ApiTokenObject expected = new ApiTokenObjectStub();
+    expected.setAlias("alias");
+    expected.setCreatedAt(3);
+    expected.setHashed("hashed");
+    expected.setSalt("salt");
+    expected.setUserKey("userkey");
+    expected.setValidFor(1);
+    JSONObject json =
+        Core.Write.writeJsonFromAccessors(expected, ApiTokenObject.class, 0).getOrNull();
+    ApiTokenObject actual = new ApiTokenObjectStub();
+    JsonMapping.Read.populateInstanceFromJson(json, actual, ApiTokenObject.class);
+    Assert.assertEquals(expected, actual);
+  }
+
+  @Test
   public void testWriteDummyUserFromJson() {
     Repository repository = new Repository();
     User user = repository.createUser(); // ID = 8777
