@@ -5,19 +5,15 @@
   <artifactId>json-mapping</artifactId>
   <version>1.1.25-SNAPSHOT</version>
   <scm>
-    <connection>scm:git:git@ksso-gitlab.kantega.org:ksso/json-mapping.git</connection>
+    <connection>scm:git:git@github.com:Eliassoren/json-mapping.git</connection>
     <tag>HEAD</tag>
   </scm>
-    <properties>
-      <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-      <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    </properties>
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+  </properties>
   <distributionManagement>
-    <repository>
-      <id>kantega-releases</id>
-      <url>https://nexus.kantega.org/content/repositories/releases/</url>
-      <layout>default</layout>
-    </repository>
+
   </distributionManagement>
   <repositories>
     <repository>
@@ -34,37 +30,30 @@
     </pluginRepository>
   </pluginRepositories>
   <dependencies>
-      <dependency>
-        <groupId>io.vavr</groupId>
-        <artifactId>vavr</artifactId>
-        <version>0.10.3</version>
-      </dependency>
+    <dependency>
+      <groupId>io.vavr</groupId>
+      <artifactId>vavr</artifactId>
+      <version>0.10.4</version>
+    </dependency>
 
-      <dependency>
-        <groupId>org.json</groupId>
-        <artifactId>json</artifactId>
-        <version>20180813</version>
-      </dependency>
+    <dependency>
+      <groupId>org.json</groupId>
+      <artifactId>json</artifactId>
+      <version>20220320</version>
+    </dependency>
 
-      <dependency>
-        <artifactId>git-code-format-maven-plugin</artifactId>
-        <groupId>com.cosium.code</groupId>
-        <type>maven-plugin</type>
-        <version>2.6</version>
-        <scope>test</scope>
-      </dependency>
 
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <version>4.12</version>
+      <version>4.13.2</version>
       <scope>test</scope>
     </dependency>
     <!-- https://mvnrepository.com/artifact/org.springframework/spring-context -->
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-context</artifactId>
-      <version>5.0.2.RELEASE</version>
+      <version>5.3.23</version>
       <scope>test</scope>
     </dependency>
 
@@ -72,134 +61,148 @@
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-expression</artifactId>
-      <version>5.0.2.RELEASE</version>
+      <version>5.3.23</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
-    <build>
-      <plugins>
-        <plugin>
-          <artifactId>maven-surefire-plugin</artifactId>
-          <version>2.22.2</version>
-        </plugin>
-        <plugin>
-          <!-- This automatically updates the pom version tag upon passing CI pipeline -->
-          <artifactId>maven-release-plugin</artifactId>
-          <version>2.5.3</version>
-          <configuration>
-            <remoteTagging>true</remoteTagging>
-            <autoVersionSubmodules>true</autoVersionSubmodules>
-            <goals>deploy</goals>
-            <arguments>-Dmaven.javadoc.skip=true</arguments>
-            <scmCommentPrefix>[skip ci] [maven-release-plugin]</scmCommentPrefix>
-          </configuration>
-        </plugin>
-        <!-- To avoid OSGi issues with Require-Dependency JavaEE version 9.0, we bundle jackson without the modlue-info class describing Java 9 module information. -->
+  <build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>2.22.2</version>
+      </plugin>
+      <plugin>
+        <!-- This automatically updates the pom version tag upon passing CI pipeline -->
+        <artifactId>maven-release-plugin</artifactId>
+        <version>2.5.3</version>
+        <configuration>
+          <remoteTagging>true</remoteTagging>
+          <autoVersionSubmodules>true</autoVersionSubmodules>
+          <goals>deploy</goals>
+          <arguments>-Dmaven.javadoc.skip=true</arguments>
+          <scmCommentPrefix>[skip ci] [maven-release-plugin]</scmCommentPrefix>
+        </configuration>
+      </plugin>
+      <!-- To avoid OSGi issues with Require-Dependency JavaEE version 9.0, we bundle jackson without the modlue-info class describing Java 9 module information. -->
 
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-compiler-plugin</artifactId>
-          <version>3.8.0</version>
-          <configuration>
-            <source>8</source>
-            <target>8</target>
-          </configuration>
-        </plugin>
-        <!-- To avoid OSGi issues with Require-Dependency JavaEE version 9.0, we bundle jackson without the modlue-info class describing Java 9 module information. -->
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-shade-plugin</artifactId>
-          <version>3.2.1</version>
-          <executions>
-            <execution>
-              <phase>package</phase>
-              <goals>
-                <goal>shade</goal>
-              </goals>
-              <configuration>
-                <minimizeJar>true</minimizeJar>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.8.0</version>
+        <configuration>
+          <source>8</source>
+          <target>8</target>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>3.2.1</version>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+              <minimizeJar>true</minimizeJar>
 
-                <transformers>
-                  <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
-                </transformers>
-                <createDependencyReducedPom>true</createDependencyReducedPom>
-                <artifactSet>
+              <transformers>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
+              </transformers>
+              <createDependencyReducedPom>true</createDependencyReducedPom>
+              <artifactSet>
+                <includes>
+                </includes>
+              </artifactSet>
+              <filters>
+                <filter>
+                  <excludes>
+                    <exclude>**/module-info.class</exclude>
+                  </excludes>
                   <includes>
+                    <include>**</include>
                   </includes>
-                </artifactSet>
-                <filters>
-                  <filter>
-                    <excludes>
-                      <exclude>**/module-info.class</exclude>
-                    </excludes>
-                    <includes>
-                      <include>**</include>
-                    </includes>
-                  </filter>
-                </filters>
-              </configuration>
-            </execution>
-          </executions>
-        </plugin>
-        <plugin>
-          <!-- Google Java style validation and formatting as pre-commit hook -->
-          <artifactId>git-code-format-maven-plugin</artifactId>
-          <executions>
-            <!-- On commit, format the modified java files -->
-            <execution>
-              <goals>
-                <goal>install-hooks</goal>
-              </goals>
-              <id>install-formatter-hook</id>
-            </execution>
-            <!-- On Maven verify phase, fail if any file
-            (including unmodified) is badly formatted -->
-            <execution>
-              <goals>
-                <goal>validate-code-format</goal>
-              </goals>
-              <id>validate-code-format</id>
-            </execution>
-          </executions>
-          <configuration>
-            <googleJavaFormatOptions>
-              <aosp>false</aosp>
-              <fixImportsOnly>false</fixImportsOnly>
-              <skipSortingImports>false</skipSortingImports>
-              <skipRemovingUnusedImports>false</skipRemovingUnusedImports>
-            </googleJavaFormatOptions>
-          </configuration>
-          <groupId>com.cosium.code</groupId>
-          <version>2.6</version>
-        </plugin>
-        <plugin>
-          <groupId>com.github.spotbugs</groupId>
-          <artifactId>spotbugs-maven-plugin</artifactId>
-          <version>4.1.3</version>
+                </filter>
+              </filters>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <!-- This plugin enforces code formatting. -->
+        <groupId>com.diffplug.spotless</groupId>
+        <artifactId>spotless-maven-plugin</artifactId>
+        <version>2.21.0</version>
+        <configuration>
+          <formats>
+            <format>
+              <includes>
+                <include>*.md</include>
+                <include>.gitignore</include>
+              </includes>
+              <trimTrailingWhitespace/>
+              <endWithNewline/>
+              <indent>
+                <tabs>true</tabs>
+                <spacesPerTab>4</spacesPerTab>
+              </indent>
+            </format>
+          </formats>
+          <java>
+            <googleJavaFormat>
+              <version>1.7</version> <!-- 1.8+ requires JDK 11+ -->
+              <style>GOOGLE</style>
+            </googleJavaFormat>
+          </java>
+        </configuration>
+      </plugin>
+      <plugin>
+        <!-- This plugin manages git hooks. We use it to run the Spotless (formatting) plugin. -->
+        <groupId>com.rudikershaw.gitbuildhook</groupId>
+        <artifactId>git-build-hook-maven-plugin</artifactId>
+        <version>3.0.0</version>
+        <configuration>
+          <gitConfig>
+            <core.hooksPath>git-hooks/</core.hooksPath>
+          </gitConfig>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>configure</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>com.github.spotbugs</groupId>
+        <artifactId>spotbugs-maven-plugin</artifactId>
+        <version>4.5.0.0</version>
 
-          <dependencies>
-            <dependency>
-              <groupId>com.github.spotbugs</groupId>
-              <artifactId>spotbugs</artifactId>
-              <version>4.1.4</version>
-            </dependency>
-          </dependencies>
-          <configuration>
-            <onlyAnalyze>com.kantegasso.-</onlyAnalyze>
-            <effort>Max</effort>
-            <threshold>Low</threshold>
-            <failOnError>true</failOnError>
-            <excludeFilterFile>${project.basedir}/spotbugs/spotbugs-exclude.xml</excludeFilterFile>
-            <plugins>
-              <plugin>
-                <groupId>com.h3xstream.findsecbugs</groupId>
-                <artifactId>findsecbugs-plugin</artifactId>
-                <version>1.11.0</version>
-              </plugin>
-            </plugins>
-            <timeout>120000</timeout>
-          </configuration>
-        </plugin>
-      </plugins>
-    </build>
+        <dependencies>
+          <dependency>
+            <groupId>com.github.spotbugs</groupId>
+            <artifactId>spotbugs</artifactId>
+            <version>4.5.2</version>
+          </dependency>
+        </dependencies>
+        <configuration>
+          <onlyAnalyze>com.kantegasso.-</onlyAnalyze>
+          <effort>Max</effort>
+          <threshold>Low</threshold>
+          <failOnError>true</failOnError>
+          <excludeFilterFile>${project.basedir}/spotbugs/spotbugs-exclude.xml</excludeFilterFile>
+          <plugins>
+            <plugin>
+              <groupId>com.h3xstream.findsecbugs</groupId>
+              <artifactId>findsecbugs-plugin</artifactId>
+              <version>1.11.0</version>
+            </plugin>
+          </plugins>
+          <timeout>120000</timeout>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
 </project>
