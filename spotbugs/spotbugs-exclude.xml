@@ -7,19 +7,9 @@
     <Bug pattern="SE_BAD_FIELD" />
   </Match>
 
-
-  <Match>
-    <!-- getGlobalIpBlockedlist() may expose internal
-    representation by returning IpRestrictionConfig.globalIpBlockedlist
-     We can probably trust out own code enough that this is fine.
-     -->
-    <Bug pattern="EI_EXPOSE_REP" />
-  </Match>
-
   <Match>
     <!-- String.toLowerCase(Locale.English) may be safer than default system.
-     Relevant for internationalization.
-      We should look at this if we get reports from international customers-->
+     Relevant for internationalization.-->
     <Bug pattern="DM_CONVERT_CASE" />
   </Match>
 

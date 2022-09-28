@@ -23,7 +23,8 @@ public class JsonMappingPenetrationTesting {
           "org.springframework.context.support.FileSystemXmlApplicationContext", spelLocation
         });
     json.put("age", Integer.MAX_VALUE);
-    Try<InsecureObject> a = JsonMapping.Read.valueFromJson(json, InsecureObject.class);
+    JsonMapping jsonMapping = new JsonMapping(false);
+    Try<InsecureObject> a = jsonMapping.read.valueFromJson(json, InsecureObject.class);
     a.peek(
         value -> {
           Object d = (value.getName());

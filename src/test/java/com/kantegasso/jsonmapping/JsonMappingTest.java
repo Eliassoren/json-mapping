@@ -19,6 +19,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 public class JsonMappingTest {
+  JsonMapping jsonMapping = new JsonMapping(true);
 
   @Test
   public void testReadScimTenantConfigFromJson() {
@@ -26,9 +27,9 @@ public class JsonMappingTest {
     ScimTenantConfigStub expected =
         new ScimTenantConfigStub(
             "1", "Azure", ApplicationSecretStub.create("a", "b"), ScimProviderKind.AZURE);
-    String json = JsonMapping.Write.objectAsJson(expected).map(JSONObject::toString).getOrElse("");
+    String json = jsonMapping.write.objectAsJson(expected).map(JSONObject::toString).getOrElse("");
     ScimTenantConfigStub maybeActual =
-        JsonMapping.Read.valueFromJson(json, ScimTenantConfigStub.class).getOrNull();
+        jsonMapping.read.valueFromJson(json, ScimTenantConfigStub.class).getOrNull();
     Assert.assertEquals(expected, maybeActual);
   }
 
@@ -37,8 +38,8 @@ public class JsonMappingTest {
     Map<String, String> expected = new HashMap<>();
     expected.put("a", "b");
     expected.put("c", "d");
-    String json = JsonMapping.Write.mapAsJson(expected).map(JSONObject::toString).getOrElse("");
-    Map<String, String> actual = JsonMapping.Read.stringMapFromJson(json).getOrNull();
+    String json = jsonMapping.write.mapAsJson(expected).map(JSONObject::toString).getOrElse("");
+    Map<String, String> actual = jsonMapping.read.stringMapFromJson(json).getOrNull();
     Assert.assertArrayEquals(expected.keySet().toArray(), actual.keySet().toArray());
     Assert.assertArrayEquals(expected.values().toArray(), actual.values().toArray());
   }
@@ -48,7 +49,7 @@ public class JsonMappingTest {
     Map<String, String> expected = new HashMap<>();
     expected.put("test", "test");
     String json = "{'test': 'test'}";
-    Map<String, String> actual = JsonMapping.Read.stringMapFromJson(json).getOrNull();
+    Map<String, String> actual = jsonMapping.read.stringMapFromJson(json).getOrNull();
     Assert.assertArrayEquals(expected.keySet().toArray(), actual.keySet().toArray());
     Assert.assertArrayEquals(expected.values().toArray(), actual.values().toArray());
   }
@@ -58,7 +59,7 @@ public class JsonMappingTest {
     Map<String, String> expected = new HashMap<>();
     expected.put("test", "test");
     String json = "{'test': 'test'}}";
-    Map<String, String> actual = JsonMapping.Read.stringMapFromJson(json).getOrNull();
+    Map<String, String> actual = jsonMapping.read.stringMapFromJson(json).getOrNull();
     Assert.assertArrayEquals(expected.keySet().toArray(), actual.keySet().toArray());
     Assert.assertArrayEquals(expected.values().toArray(), actual.values().toArray());
   }
@@ -68,7 +69,7 @@ public class JsonMappingTest {
     Map<String, String> expected = new HashMap<>();
     expected.put("test", "test");
     String json = "{'test': 'test'}}";
-    Map<String, String> actual = JsonMapping.Read.stringMapFromJson(json).getOrNull();
+    Map<String, String> actual = jsonMapping.read.stringMapFromJson(json).getOrNull();
     Assert.assertArrayEquals(expected.keySet().toArray(), actual.keySet().toArray());
     Assert.assertArrayEquals(expected.values().toArray(), actual.values().toArray());
   }
@@ -84,7 +85,7 @@ public class JsonMappingTest {
         Try.of(
                 () ->
                     (Map<String, HashMap<String, String>>)
-                        JsonMapping.Read.mapFromJson(json).getOrNull())
+                        jsonMapping.read.mapFromJson(json).getOrNull())
             .getOrElse(new HashMap<>());
     Assert.assertArrayEquals(expected.keySet().toArray(), actual.keySet().toArray());
     Assert.assertArrayEquals(expected.values().toArray(), actual.values().toArray());
@@ -97,7 +98,7 @@ public class JsonMappingTest {
         "test", Collections.singletonList(io.vavr.collection.HashMap.of("a", "b").toJavaMap()));
     String json = "{'test': [{'a': 'b'}]}";
 
-    Map<String, Object> actual = JsonMapping.Read.objectMapFromJson(json).getOrNull();
+    Map<String, Object> actual = jsonMapping.read.objectMapFromJson(json).getOrNull();
     Assert.assertArrayEquals(actual.keySet().toArray(), expected.keySet().toArray());
     Assert.assertArrayEquals(actual.values().toArray(), expected.values().toArray());
   }
@@ -111,9 +112,9 @@ public class JsonMappingTest {
     expected.setSalt("salt");
     expected.setUserKey("userkey");
     expected.setValidFor(1);
-    String json = JsonMapping.Write.objectAsJson(expected).map(JSONObject::toString).getOrElse("");
+    String json = jsonMapping.write.objectAsJson(expected).map(JSONObject::toString).getOrElse("");
     ApiTokenObject maybeActual =
-        JsonMapping.Read.valueFromJson(json, ApiTokenObjectStub.class).getOrNull();
+        jsonMapping.read.valueFromJson(json, ApiTokenObjectStub.class).getOrNull();
     Assert.assertEquals(expected, maybeActual);
   }
 
@@ -126,8 +127,8 @@ public class JsonMappingTest {
     expected.setSalt("salt");
     expected.setUserKey("userkey");
     expected.setValidFor(1);
-    String json = JsonMapping.Write.objectAsJson(expected).map(JSONObject::toString).getOrElse("");
-    Try<ApiTokenObject> maybeActual = JsonMapping.Read.valueFromJson(json, ApiTokenObject.class);
+    String json = jsonMapping.write.objectAsJson(expected).map(JSONObject::toString).getOrElse("");
+    Try<ApiTokenObject> maybeActual = jsonMapping.read.valueFromJson(json, ApiTokenObject.class);
     Assert.assertTrue(maybeActual.isFailure()); // Fail because interface does not have constructor
   }
 
@@ -140,9 +141,9 @@ public class JsonMappingTest {
     expected.setSalt("salt");
     expected.setUserKey("userkey");
     expected.setValidFor(1);
-    Try<String> maybeJson = JsonMapping.Write.objectAsJson(expected).map(JSONObject::toString);
+    Try<String> maybeJson = jsonMapping.write.objectAsJson(expected).map(JSONObject::toString);
     Try<ApiTokenObjectStubWithoutAnnotation> maybeActual =
-        JsonMapping.Read.valueFromJson(
+        jsonMapping.read.valueFromJson(
             maybeJson.getOrElse(""), ApiTokenObjectStubWithoutAnnotation.class);
     Assert.assertNull(maybeActual.getOrNull());
     Assert.assertEquals("", maybeJson.getOrElse(""));
@@ -157,9 +158,9 @@ public class JsonMappingTest {
     expected.setSalt("salt");
     expected.setUserKey("userkey");
     expected.setValidFor(1);
-    JSONObject json = JsonMapping.Write.objectAsJson(expected, ApiTokenObject.class).getOrNull();
+    JSONObject json = jsonMapping.write.objectAsJson(expected, ApiTokenObject.class).getOrNull();
     ApiTokenObjectStub actual = new ApiTokenObjectStub();
-    JsonMapping.Read.populateInstanceFromJson(json, actual, ApiTokenObject.class);
+    jsonMapping.read.populateInstanceFromJson(json, actual, ApiTokenObject.class);
     Assert.assertEquals(expected, actual);
   }
 
@@ -172,9 +173,9 @@ public class JsonMappingTest {
     expected.setSalt("salt");
     expected.setUserKey("userkey");
     expected.setValidFor(1);
-    JSONObject json = JsonMapping.Write.objectAsJson(expected, ApiTokenObject.class).getOrNull();
+    JSONObject json = jsonMapping.write.objectAsJson(expected, ApiTokenObject.class).getOrNull();
     ApiTokenObject actual = new ApiTokenObjectStub();
-    JsonMapping.Read.populateInstanceFromJson(json, actual, ApiTokenObject.class);
+    jsonMapping.read.populateInstanceFromJson(json, actual, ApiTokenObject.class);
     Assert.assertEquals(expected, actual);
   }
 
@@ -188,9 +189,9 @@ public class JsonMappingTest {
     expected.setUserKey("userkey");
     expected.setValidFor(1);
     JSONObject json =
-        Core.Write.writeJsonFromAccessors(expected, ApiTokenObject.class, 0).getOrNull();
+        Core.Write.writeJsonFromAccessors(expected, ApiTokenObject.class, 0, false).getOrNull();
     ApiTokenObject actual = new ApiTokenObjectStub();
-    JsonMapping.Read.populateInstanceFromJson(json, actual, ApiTokenObject.class);
+    jsonMapping.read.populateInstanceFromJson(json, actual, ApiTokenObject.class);
     Assert.assertEquals(expected, actual);
   }
 
@@ -212,7 +213,7 @@ public class JsonMappingTest {
     user3.setGroups(Arrays.asList("group 1", "group 2"));
     user.setContacts(Arrays.asList(user2, user3));
     user3.setContacts(Arrays.asList(user, user2));
-    JSONObject json = JsonMapping.Write.objectAsJson(user).getOrNull();
+    JSONObject json = jsonMapping.write.objectAsJson(user).getOrNull();
     /* json:
         {
             "ID": 8777,
@@ -221,7 +222,7 @@ public class JsonMappingTest {
             "groups": ["group 1", "group 2"]
         }
     */
-    User actual = JsonMapping.Read.valueFromJson(json, User.class).getOrNull();
+    User actual = jsonMapping.read.valueFromJson(json, User.class).getOrNull();
     Assert.assertEquals(user, actual); // true
   }
 }

@@ -18,20 +18,21 @@ class Core {
 
   static class Write {
 
-    static <T> Try<JSONObject> objectAsJson(T object, Class<?> valueType) {
-      return objectAsJson(object, valueType, 0);
+    static <T> Try<JSONObject> objectAsJson(T object, Class<?> valueType, boolean changePrivateModifiersAllowed) {
+      return objectAsJson(object, valueType, 0, changePrivateModifiersAllowed);
     }
 
-    static <T> Try<JSONObject> objectAsJson(T object) {
-      return objectAsJson(object, object.getClass(), 0);
+    static <T> Try<JSONObject> objectAsJson(T object, boolean changePrivateModifiersAllowed) {
+      return objectAsJson(object, object.getClass(), 0, changePrivateModifiersAllowed);
     }
 
-    static <T> Try<JSONObject> objectAsJson(T object, Class<?> valueType, int recursionDepth) {
-      return writeJsonFromAccessors(object, valueType, recursionDepth)
-          .orElse(writeJsonFromFields(object, recursionDepth));
+    static <T> Try<JSONObject> objectAsJson(T object, Class<?> valueType, int recursionDepth, boolean changePrivateModifiersAllowed) {
+      return writeJsonFromAccessors(object, valueType, recursionDepth, changePrivateModifiersAllowed)
+          .orElse(writeJsonFromBuilder(object, valueType, recursionDepth, changePrivateModifiersAllowed))
+          .orElse(writeJsonFromFields(object, recursionDepth, changePrivateModifiersAllowed));
     }
 
-    static <T> Try<JSONObject> writeJsonFromFields(T object, int recursionDepth) {
+    static <T> Try<JSONObject> writeJsonFromFields(T object, int recursionDepth, boolean changePrivateModifiersAllowed) {
       return Try.of(() -> object.getClass().getDeclaredFields())
           .mapTry(List::of)
           .filterTry(
@@ -54,7 +55,9 @@ class Core {
                       String fieldName = Utils.parseFieldName(field);
                       Try.of(
                               () -> {
-                                Utils.makeFieldAccessible(field);
+                                if(changePrivateModifiersAllowed) {
+                                  Utils.makeFieldAccessible(field);
+                                }
                                 return field.get(object);
                               })
                           .mapTry(
@@ -62,7 +65,7 @@ class Core {
                                 if (Utils.isBasicJavaObject(value)) {
                                   return value;
                                 } else {
-                                  return objectAsJson(value, value.getClass(), recursionDepth + 1)
+                                  return objectAsJson(value, value.getClass(), recursionDepth + 1, changePrivateModifiersAllowed)
                                       .getOrElseThrow(
                                           () ->
                                               new RuntimeException("Failed to write json nested"));
@@ -79,7 +82,7 @@ class Core {
      * Note that @JsonProperty annotations are needed on accessors.
      */
     static <T> Try<JSONObject> writeJsonFromAccessors(
-        T object, Class<?> valueType, int recursionDepth) {
+        T object, Class<?> valueType, int recursionDepth, boolean changePrivateModifiersAllowed) {
       return Try.of(() -> valueType)
           .filterTry(_type -> recursionDepth < Utils.MAX_RECURSION_DEPTH)
           .filterTry(
@@ -106,7 +109,46 @@ class Core {
                                       return value;
                                     } else {
                                       return objectAsJson(
-                                          value, value.getClass(), recursionDepth + 1);
+                                          value, value.getClass(), recursionDepth + 1, changePrivateModifiersAllowed);
+                                    }
+                                  })
+                              .mapTry(value -> jsonObject.put(fieldName, value));
+                        });
+                return jsonObject;
+              })
+          .filterTry(json -> !json.isEmpty());
+    }
+
+  // TODO
+  static <T> Try<JSONObject> writeJsonFromBuilder(
+        T object, Class<?> valueType, int recursionDepth, boolean changePrivateModifiersAllowed) {
+      return Try.of(() -> valueType)
+          .filterTry(_type -> recursionDepth < Utils.MAX_RECURSION_DEPTH)
+          .filterTry(
+              type -> valueType.getDeclaredAnnotation(JsonMapper.class) != null,
+              () ->
+                  new JsonMappingException(
+                      "JSON-5COOZK00Z8",
+                      "The type '"
+                          + Try.of(() -> object.getClass().getName()).getOrElse("")
+                          + "' does not have the required annotation @JsonMapper."))
+          .mapTry(
+              type -> {
+                JSONObject jsonObject = new JSONObject();
+                List.of(type.getDeclaredMethods())
+                    .filter(Utils::isMethodAccessor)
+                    .filter(accessor -> accessor.getAnnotation(JsonProperty.class) != null)
+                    .forEach(
+                        accessor -> {
+                          String fieldName = Utils.parseFieldName(accessor);
+                          Try.of(() -> accessor.invoke(object, (Object[]) null))
+                              .mapTry(
+                                  value -> {
+                                    if (Utils.isBasicJavaObject(value)) {
+                                      return value;
+                                    } else {
+                                      return objectAsJson(
+                                          value, value.getClass(), recursionDepth + 1, changePrivateModifiersAllowed);
                                     }
                                   })
                               .mapTry(value -> jsonObject.put(fieldName, value));
@@ -119,7 +161,7 @@ class Core {
 
   static class Read {
 
-    static <T> Try<T> valueFromJson(JSONObject jsonObject, Class<T> valueType) {
+    static <T> Try<T> valueFromJson(JSONObject jsonObject, Class<T> valueType, boolean changePrivateModifiersAllowed) {
       return Try.of(() -> valueType)
           .filterTry(
               type -> type.getDeclaredAnnotation(JsonMapper.class) != null,
@@ -129,23 +171,23 @@ class Core {
                       "The type '"
                           + Try.of(valueType::getName).getOrElse("")
                           + "' does not have the required annotation @JsonMapper."))
-          .flatMapTry(_type -> valueFromJson(jsonObject, valueType, 0));
+          .flatMapTry(_type -> valueFromJson(jsonObject, valueType, 0, changePrivateModifiersAllowed));
     }
 
     private static <T> Try<T> valueFromJson(
-        JSONObject jsonObject, Class<T> valueType, int recursionDepth) {
-      return parseObjectWithConstructor(jsonObject, valueType, recursionDepth)
-          .orElse(parseMutableObjectWithSetters(jsonObject, valueType, recursionDepth))
-          .orElse(parseObjectWithFields(jsonObject, valueType, recursionDepth));
+        JSONObject jsonObject, Class<T> valueType, int recursionDepth, boolean changePrivateModifiersAllowed) {
+      return parseObjectWithConstructor(jsonObject, valueType, recursionDepth, changePrivateModifiersAllowed)
+          .orElse(parseMutableObjectWithSetters(jsonObject, valueType, recursionDepth, changePrivateModifiersAllowed))
+          .orElse(parseObjectWithFields(jsonObject, valueType, recursionDepth, changePrivateModifiersAllowed));
     }
 
     static <T> Try<Void> populateInstanceFromJson(
-        JSONObject jsonObject, T object, Class<?> valueType) {
-      return populateInstanceFromJson(jsonObject, object, valueType, 0);
+        JSONObject jsonObject, T object, Class<?> valueType, boolean changePrivateModifiersAllowed) {
+      return populateInstanceFromJson(jsonObject, object, valueType, 0, changePrivateModifiersAllowed);
     }
 
     private static <T> Try<Void> populateInstanceFromJson(
-        JSONObject jsonObject, T object, Class<?> valueType, int recursionDepth) {
+        JSONObject jsonObject, T object, Class<?> valueType, int recursionDepth, boolean changePrivateModifiersAllowed) {
       return Try.of(() -> valueType)
           .filterTry(
               type -> type.getDeclaredAnnotation(JsonMapper.class) != null,
@@ -161,7 +203,7 @@ class Core {
                       .filter(method -> method.getName().startsWith("set"))
                       .filter(method -> method.getParameterCount() == 1)
                       .filter(method -> method.getReturnType().equals(Void.TYPE))
-                      .map(setter -> setValueFromJson(object, setter, jsonObject, recursionDepth)))
+                      .map(setter -> setValueFromJson(object, setter, jsonObject, recursionDepth, changePrivateModifiersAllowed)))
           .filterTry(List::nonEmpty)
           .filterTry(tryList -> tryList.forAll(Try::isSuccess))
           .filterTry(list -> recursionDepth < Utils.MAX_RECURSION_DEPTH)
@@ -169,7 +211,7 @@ class Core {
     }
 
     private static <T> Try<Void> setValueFromJson(
-        T object, Method setter, JSONObject jsonObject, int recursionDepth) {
+        T object, Method setter, JSONObject jsonObject, int recursionDepth, boolean changePrivateModifiersAllowed) {
       return Try.of(
               () -> {
                 Map<String, Object> jsonMap = jsonObject.toMap();
@@ -182,7 +224,7 @@ class Core {
                           () -> {
                             Class<?> setterType = setter.getParameterTypes()[0];
                             Object parsedValue =
-                                parseValue(setterType, valueFromJson, recursionDepth);
+                                parseValue(setterType, valueFromJson, recursionDepth, changePrivateModifiersAllowed);
                             setter.invoke(object, parsedValue);
                           })
                       .orElse(
@@ -195,12 +237,12 @@ class Core {
     }
 
     private static <T> Try<T> parseMutableObjectWithSetters(
-        JSONObject jsonObject, Class<T> valueType, int recursionDepth) {
+        JSONObject jsonObject, Class<T> valueType, int recursionDepth, boolean changePrivateModifiersAllowed) {
       return Try.of(valueType::newInstance)
           .filterTry(object -> recursionDepth < Utils.MAX_RECURSION_DEPTH)
           .mapTry(
               object -> {
-                populateInstanceFromJson(jsonObject, object, valueType, recursionDepth)
+                populateInstanceFromJson(jsonObject, object, valueType, recursionDepth, changePrivateModifiersAllowed)
                     .getOrElseThrow(
                         throwable ->
                             new JsonMappingException(
@@ -210,7 +252,7 @@ class Core {
     }
 
     private static <T> Try<T> parseObjectWithConstructor(
-        JSONObject jsonObject, Class<T> valueType, int recursionDepth) {
+        JSONObject jsonObject, Class<T> valueType, int recursionDepth, boolean changePrivateModifiersAllowed) {
       return Try.of(
               () -> {
                 List<Class<?>> fieldTypes =
@@ -231,12 +273,12 @@ class Core {
           .filterTry(constructor -> recursionDepth < Utils.MAX_RECURSION_DEPTH)
           .mapTry(
               constructor ->
-                  constructor.newInstance(sortParameters(jsonObject, constructor, recursionDepth)))
+                  constructor.newInstance(sortParameters(jsonObject, constructor, recursionDepth, changePrivateModifiersAllowed)))
           .mapTry(valueType::cast);
     }
 
     private static Object[] sortParameters(
-        JSONObject jsonObject, Constructor<?> constructor, int recursionDepth) {
+        JSONObject jsonObject, Constructor<?> constructor, int recursionDepth, boolean changePrivateModifiersAllowed) {
       Map<String, Object> jsonMap = jsonObject.toMap();
       List<Parameter> parameters = List.of(constructor.getParameters());
       return parameters
@@ -261,14 +303,14 @@ class Core {
                                   && jsonKey.equals(parameterName);
                             })
                         .map(jsonMap::get)
-                        .map(value -> parseValue(parameterType, value, recursionDepth))
+                        .map(value -> parseValue(parameterType, value, recursionDepth, changePrivateModifiersAllowed))
                         .getOrNull();
                 return parameterValue;
               })
           .toJavaArray();
     }
 
-    private static Object parseValue(Class<?> parameterType, Object value, int recursionDepth) {
+    private static Object parseValue(Class<?> parameterType, Object value, int recursionDepth, boolean changePrivateModifiersAllowed) {
       return Try.of(
               () -> {
                 Class<?> valueType = Utils.convertPrimitiveType(value.getClass());
@@ -286,8 +328,8 @@ class Core {
                   return Try.of(() -> Utils.convertJavaLangNumber(value, valueType, parameterType))
                       .getOrElse(value);
                 } else if (value instanceof HashMap) {
-                  return JsonMapping.Write.mapAsJson((HashMap<?, ?>) value)
-                      .flatMapTry(json -> valueFromJson(json, parameterType, recursionDepth + 1))
+                  return Try.of(() -> new JSONObject((HashMap<?, ?>) value))
+                      .flatMapTry(json -> valueFromJson(json, parameterType, recursionDepth + 1, changePrivateModifiersAllowed))
                       .getOrElseThrow(
                           () ->
                               new JsonMappingException(
@@ -299,8 +341,8 @@ class Core {
     }
 
     private static <T> Try<T> parseObjectWithFields(
-        JSONObject jsonObject, Class<T> valueType, int recursionDepth) {
-      return Try.of(() -> valueType.newInstance())
+        JSONObject jsonObject, Class<T> valueType, int recursionDepth, boolean changePrivateModifiersAllowed) {
+      return Try.of(() -> valueType.getDeclaredConstructor().newInstance())
           .filterTry(_instance -> recursionDepth < Utils.MAX_RECURSION_DEPTH)
           .recoverWith(IllegalAccessException.class, Utils.invokePrivateConstuctor(valueType))
           .mapTry(
@@ -311,10 +353,12 @@ class Core {
                           String fieldName = Utils.parseFieldName(field);
                           Object valueFromJson = jsonObject.get(fieldName);
                           try {
-                            Utils.makeFieldModifiable(field);
+                            if(changePrivateModifiersAllowed) {
+                              Utils.makeFieldModifiable(field);
+                            }
                             Class<?> fieldType = Utils.convertPrimitiveType(field.getType());
                             Object parsedValue =
-                                parseValue(fieldType, valueFromJson, recursionDepth);
+                                parseValue(fieldType, valueFromJson, recursionDepth, changePrivateModifiersAllowed);
                             field.set(instance, parsedValue);
                           } catch (Exception ignored) {
                           }
